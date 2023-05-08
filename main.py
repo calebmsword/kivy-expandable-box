@@ -307,7 +307,10 @@ class ExpandableMixin(Widget):
                         fixed_widths += child.width
                 allotted_width = min(0, self.parent.width - fixed_widths)
                 if allotted_width == 0.:
-                    self.size_hint_x = 0
+                    # size_hint_x = 0 is actually equivalent to size_hint_x = 1
+                    # (???) so instead make it small enough to round any value
+                    # down to 0 pixels
+                    self.size_hint_x = 0.000001
                 else:
                     # size_hint_x / summ = width / allotted_width
                     self.size_hint_x = summ * self.width / allotted_width
@@ -349,7 +352,10 @@ class ExpandableMixin(Widget):
                         fixed_heights += child.height
                 allotted_height = min(0, self.parent.height - fixed_heights)
                 if allotted_height == 0.:
-                    self.size_hint_y = 0
+                    # size_hint_y = 0 is actually equivalent to size_hint_y = 1
+                    # (???) so instead make it small enough to round any value
+                    # down to 0 pixels
+                    self.size_hint_y = 0.000001
                 else:
                     # size_hint_y / summ = height / allotted_height
                     self.size_hint_y = summ * self.height / allotted_height
