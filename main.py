@@ -8,7 +8,6 @@ from kivy.properties import BooleanProperty
 from kivy.properties import BoundedNumericProperty
 from kivy.properties import NumericProperty
 from kivy.properties import ObjectProperty
-from kivy.properties import OptionProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -53,21 +52,35 @@ class ExpandableMixin(Widget):
     allow_expand_vertical = BooleanProperty(False)
     start_expanded_horizontal = BooleanProperty(None)
     start_expanded_vertical = BooleanProperty(None)
-    expanded_horizontal = BooleanProperty()
-    expanded_vertical = BooleanProperty()
+    _expanded_horizontal = BooleanProperty()
+    _expanded_vertical = BooleanProperty()
     expand_animation_timeout = NumericProperty(0.25)
     expand_animation_horizontal_timeout = NumericProperty(None)
     expand_animation_vertical_timeout = NumericProperty(None)
 
+    def _get_expanded_horizontal(self, *_args):
+        return self._expanded_horizontal
+    expanded_horizontal = AliasProperty(
+        _get_expanded_horizontal,
+        bind=["_expanded_horizontal"]
+    )
+
+    def _get_expanded_vertical(self, *_args):
+        return self._expanded_vertical
+    expanded_vertical = AliasProperty(
+        _get_expanded_vertical,
+        bind=["_expanded_vertical"]
+    )
+
     def _get_retracted_horizontal(self, *_args):
-        return not self.expanded_horizontal
+        return not self._expanded_horizontal
     retracted_horizontal = AliasProperty(
         _get_retracted_horizontal,
         bind=["expanded_horizontal"]
     )
 
     def _get_retracted_vertical(self, *_args):
-        return not self.expanded_vertical
+        return not self._expanded_vertical
     retracted_vertical = AliasProperty(
         _get_retracted_vertical,
         bind=["expanded_vertical"]
@@ -156,7 +169,7 @@ class ExpandableMixin(Widget):
 
     def toggle_expand_horizontal(self, *_args):
         if self.allow_expand_horizontal:
-            if self.expanded_horizontal:
+            if self._expanded_horizontal:
                 if self.min_width_hint is not None:
                     self._animate_width_hint(self.min_width_hint)
                 else:
@@ -166,11 +179,11 @@ class ExpandableMixin(Widget):
                     self._animate_width_hint(self.full_width_hint)
                 else:
                     self._animate_width(self.full_width)
-            self.expanded_horizontal = not self.expanded_horizontal
+            self._expanded_horizontal = not self._expanded_horizontal
 
     def toggle_expand_vertical(self, *_args):
         if self.allow_expand_vertical:
-            if self.expanded_vertical:
+            if self._expanded_vertical:
                 if self.min_height_hint is not None:
                     self._animate_height_hint(self.min_height_hint)
                 else:
@@ -181,12 +194,12 @@ class ExpandableMixin(Widget):
                 else:
                     self._animate_height(self.full_height)
 
-            self.expanded_vertical = not self.expanded_vertical
+            self._expanded_vertical = not self._expanded_vertical
 
     def _update_width(self, *_args):
         if self.allow_expand_horizontal:
             if not self.expanding:
-                if not self.expanded_horizontal:
+                if not self._expanded_horizontal:
                     if self.min_width_hint is not None:
                         self.size_hint_x = self.min_width_hint
                     else:
@@ -202,7 +215,7 @@ class ExpandableMixin(Widget):
     def _update_height(self, *_args):
         if self.allow_expand_vertical:
             if not self.expanding:
-                if not self.expanded_vertical:
+                if not self._expanded_vertical:
                     if self.min_height_hint is not None:
                         self.size_hint_y = self.min_height_hint
                     else:
@@ -216,7 +229,7 @@ class ExpandableMixin(Widget):
                         self.height = self.full_height
 
     def expand_horizontal(self, *_args):
-        if not self.expanded_horizontal:
+        if not self._expanded_horizontal:
             self.toggle_expand_horizontal()
 
     def retract_horizontal(self, *_args):
@@ -224,7 +237,7 @@ class ExpandableMixin(Widget):
             self.toggle_expand_horizontal()
 
     def expand_vertical(self, *_args):
-        if not self.expanded_vertical:
+        if not self._expanded_vertical:
             self.toggle_expand_vertical()
 
     def retract_vertical(self, *_args):
@@ -238,7 +251,7 @@ class ExpandableMixin(Widget):
             self.size_hint_x = self.full_width_hint
         else:
             self.width = self.full_width
-        self.expanded_horizontal = True
+        self._expanded_horizontal = True
 
     def force_retract_horizontal(self, *_args):
         Animation.cancel_all(self, "size_hint_x")
@@ -247,7 +260,7 @@ class ExpandableMixin(Widget):
             self.size_hint_x = self.min_width_hint
         else:
             self.width = self.min_width
-        self.expanded_horizontal = False
+        self._expanded_horizontal = False
 
     def force_expand_vertical(self, *_args):
         Animation.cancel_all(self, "size_hint_y")
@@ -256,7 +269,7 @@ class ExpandableMixin(Widget):
             self.size_hint_y = self.full_height_hint
         else:
             self.height = self.full_height
-        self.expanded_vertical = True
+        self._expanded_vertical = True
 
     def force_retract_vertical(self, *_args):
         Animation.cancel_all(self, "size_hint_y")
@@ -265,16 +278,16 @@ class ExpandableMixin(Widget):
             self.size_hint_y = self.min_height_hint
         else:
             self.height = self.min_height
-        self.expanded_vertical = False
+        self._expanded_vertical = False
 
     def force_toggle_vertical(self, *_args):
-        if self.expanded_vertical:
+        if self._expanded_vertical:
             self.force_retract_vertical()
         else:
             self.force_expand_vertical()
 
     def force_toggle_horizontal(self, *_args):
-        if self.expanded_horizontal:
+        if self._expanded_horizontal:
             self.force_retract_horizontal()
         else:
             self.force_expand_horizontal()
@@ -296,6 +309,7 @@ class ExpandableMixin(Widget):
                 if allotted_width == 0.:
                     self.size_hint_x = 0
                 else:
+                    # size_hint_x / summ = width / allotted_width
                     self.size_hint_x = summ * self.width / allotted_width
 
     def _animate_width_hint(self, new_width_hint, *_args):
@@ -337,6 +351,7 @@ class ExpandableMixin(Widget):
                 if allotted_height == 0.:
                     self.size_hint_y = 0
                 else:
+                    # size_hint_y / summ = height / allotted_height
                     self.size_hint_y = summ * self.height / allotted_height
 
     def _animate_height_hint(self, new_height_hint, *_args):
@@ -418,7 +433,7 @@ class ExpandableMixin(Widget):
                         self.size_hint_x = self.min_width_hint
                     else:
                         self.width = self.min_width
-                self.expanded_horizontal = start_expanded_horizontal
+                self._expanded_horizontal = start_expanded_horizontal
 
     _expanded_vertical_initialized = BooleanProperty(False)
 
@@ -437,7 +452,7 @@ class ExpandableMixin(Widget):
                         self.size_hint_y = self.min_height_hint
                     else:
                         self.height = self.min_height
-                self.expanded_vertical = start_expanded_vertical
+                self._expanded_vertical = start_expanded_vertical
 
 
 class ExpandableLabel(Label, ExpandableMixin):
@@ -465,8 +480,8 @@ Builder.load_string(f"""
             id: expandable_hor
             allow_expand_horizontal: True
             start_expanded_horizontal: False
-            min_width_hint:  0.25
-            full_width_hint: 0.50
+            min_width_hint:  1./3
+            full_width_hint: 1
             text: "Expandable"
         StatefulButton:
             id: btn_stateful_hor
@@ -557,7 +572,7 @@ Builder.load_string(f"""
                     text: "Force expand horizontal"
                     on_release: expandable_both.force_expand_horizontal()
                 Button:
-                    text: "Force retract vertical"
+                    text: "Force retract horizontal"
                     on_release: expandable_both.force_retract_horizontal()
     BoxLayout:
         AnchorLayout:
@@ -570,15 +585,15 @@ Builder.load_string(f"""
                 start_expanded_horizontal: True
                 start_expanded_vertical: False
                 
-                min_width_hint:   0.25
-                full_width_hint:  0.50
-                min_height_hint:  0.25
-                full_height_hint: 0.50
-                               
-                # min_width: 150
-                # full_width_hint:  1
+                # min_width_hint:   0.25
+                # full_width_hint:  0.50
                 # min_height_hint:  0.25
-                # full_height: 400
+                # full_height_hint: 0.50
+                               
+                min_width: 150
+                full_width_hint:  1
+                min_height_hint:  0.25
+                full_height: 400
                 
                 # min_width: 150
                 # full_width: 300
@@ -629,7 +644,7 @@ class ExpandableBoxApp(App):
 
     def build(self):
         root = RootWidget()
-        Window.size = (800, 600)
+        Window.maximize()
 
         inspector.create_inspector(Window, root)
         return root
