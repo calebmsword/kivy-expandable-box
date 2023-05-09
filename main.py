@@ -6,13 +6,6 @@ Config.read("config.ini")
 from kivy.app import App  # noqa: E402
 from kivy.core.window import Window  # noqa: E402
 from kivy.modules import inspector  # noqa: E402
-from kivy.uix.label import Label  # noqa: E402
-
-from expandablebox import ExpandableMixin  # noqa: E402
-
-
-class ExpandableLabel(Label, ExpandableMixin):
-    pass
 
 
 class ExpandableBoxApp(App):

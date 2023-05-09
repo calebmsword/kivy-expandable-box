@@ -1,13 +1,27 @@
+#: import ExpandableMixin expandable.ExpandableMixin
+
+#: set BLACK 0, 0, 0, 1
+#: set WHITE 1, 1, 1, 1
+#: set RED   1, 0, 0, 1
+#: set BLUE  0, 0, 1, 1
+#: set GREEN 0, 1, 0, 1
+#: set CYAN  0, 1, 1, 1
+#: set TRANSPARENT 0, 0, 0, 0
+
+<ExpandableLabel@Label+ExpandableMixin>:
+    background_color: TRANSPARENT
+    canvas.before:
+        Color:
+            rgba: self.background_color if self.background_color is not None else TRANSPARENT
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
 BoxLayout:
     orientation: "vertical"
     BoxLayout:
         ExpandableLabel:
-            canvas.before:
-                Color:
-                    rgba: 0, 0, 1, 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
+            background_color: BLUE
             id: expandable_hor
             allow_expand_horizontal: True
             start_expanded_horizontal: False
@@ -21,12 +35,7 @@ BoxLayout:
     BoxLayout:
         BoxLayout:
             ExpandableLabel:
-                canvas.before:
-                    Color:
-                        rgba: 1, 0, 0, 1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+                background_color: RED
                 id: expandable_vert
                 allow_expand_vertical: True
                 start_expanded_vertical: False
@@ -73,12 +82,7 @@ BoxLayout:
                 expand_animation_timeout: 1
                 color: 0, 0, 0, 1
                 text: "Expandable"
-                canvas.before:
-                    Color:
-                        rgba: 0, 1, 0, 1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+                background_color: GREEN
         BoxLayout:
             Button:
                 id: btn_stateful_hor_02
@@ -134,12 +138,7 @@ BoxLayout:
                 expand_animation_timeout: 0.10
                 color: 0, 0, 0, 1
                 text: "Expandable"
-                canvas.before:
-                    Color:
-                        rgba: 0, 1, 1, 1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+                background_color: CYAN
         BoxLayout:
             Button:
                 size_hint_x: 1
