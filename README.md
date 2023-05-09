@@ -7,7 +7,8 @@ TO-DO:
    - [ ] Refactor `expanding` into `resizing`.
    - [ ] Refactor `_expand_animation` into `_resize_animation`.
    - [ ] Refactor `on__expand_animation` to `on__resize_animation`
-   - [ ] Create `expanding_horizontal`/`expanding_vertical` and `retracting_horizontal`/`retracting_vertical` as read-only AliasProperties. Refactor logic to use these new variables when appropriate.
+   - [ ] Create `expanding_horizontal`/`expanding_vertical` and `retracting_horizontal`/`retracting_vertical` as read-only AliasProperties.
+   - [ ] Refactor logic to use these new variables when appropriate.
  - [ ] Guard all `force_xxx` methods based on whether `allow_expand_horizontal`/`allow_expand_vertical` are true. Create an `ignore_allowance` keyword argument which bypasses these guards
    - [ ] Also add `ignore_allowance` keyword to `expand_xxx` and `toggle_xxx` methods.
  - [ ] Allow for users to make the expansion and retraction animation durations different:
@@ -23,4 +24,7 @@ TO-DO:
    - [ ] Prioritize based on specificity. For example, `duration_expand_horizontal` → `duration_resize_horizontal` → `duration_resize`
  - [ ] Make `allow_expand_horizontal` and `allow_expand_vertical` both `True` by default.
  - [ ] Create variable `is_hintable` that is a read-only `AliasProperty` bound to `self.parent`. It is `True` if the parent is a `Widget` that listens to `size_hint`.
-   - [ ] Create an additional variable that is a `ListProperty`. It allows the user to add additional `Widget`s in case they have their own internal `Widget`s which also listen to `size_hint`.  
+   - [ ] Log warnings if the user assigns a size hint when the Widget is not hintable.
+   - [ ] Create an additional variable that is a `ListProperty`. It allows the user to add additional `Widget`s in case they have their own internal `Widget`s which also listen to `size_hint`.
+   - [ ] Also create a `BooleanProperty` variable that, if set differently from its default value, stops the Mixin from checking if it is hintable. This causes the Widget to always use a size_hint if it is set, trusting the user that such a thing makes sense to do.
+ - [ ] Create fields that allow users to add custom transition parameters to each animation (expand hor, expand ver, retract hor, retract ver) with levels of specificity equivalent to animation durations.
