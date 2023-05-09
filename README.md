@@ -21,3 +21,4 @@ TO-DO:
       - `expand_animation_timeout_horizontal`  → `duration_resize_horizontal`
       - `expand_animation_timeout_vertical`  → `duration_resize_vertical`
    - Prioritize based on specificity. For example, `duration_expand_horizontal` → `duration_resize_horizontal` → `duration_resize`
+ - Make `allow_expand_horizontal` and `allow_expand_vertical` both `True` by default.
