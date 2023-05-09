@@ -342,6 +342,9 @@ class ExpandableMixin(Widget):
         corresponding size_hint_x.
         """
         if self.size_hint_x is None:
+            if self.parent is None:
+                self.size_hint_x = 1
+                return
             num_siblings = len(self.parent.children) - 1
             if num_siblings == 0:
                 # If a Layout has only one child, then size_hint_x represents
@@ -417,6 +420,9 @@ class ExpandableMixin(Widget):
         corresponding size_hint_y.
         """
         if self.size_hint_y is None:
+            if self.parent is None:
+                self.size_hint_y = 1
+                return
             num_siblings = len(self.parent.children) - 1
             if num_siblings == 0:
                 # If a Layout has only one child, then size_hint_y represents
