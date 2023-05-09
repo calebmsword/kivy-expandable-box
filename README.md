@@ -9,7 +9,6 @@ TO-DO:
    - Create `expanding_horizontal`/`expanding_vertical` and `retracting_horizontal`/`retracting_vertical` as read-only AliasProperties. Refactor logic to use these new variables when appropriate.
  - Guard all `force_xxx` methods based on whether `allow_expand_horizontal`/`allow_expand_vertical` are true. Create an `ignore_allowance` keyword argument which bypasses these guards
    - Also add `ignore_allowance` keyword to `expand_xxx` and `toggle_xxx` methods.
- - Raise an error in `force_xxx` methods and `toggle_xxx` methods if `xxx_hint` and `xxx` are both `None`
  - Allow for users to make the expansion and retraction animation durations different:
    -  create variables:
       -  `duration_expand_horizontal`
@@ -22,3 +21,5 @@ TO-DO:
       - `expand_animation_timeout_vertical`  → `duration_resize_vertical`
    - Prioritize based on specificity. For example, `duration_expand_horizontal` → `duration_resize_horizontal` → `duration_resize`
  - Make `allow_expand_horizontal` and `allow_expand_vertical` both `True` by default.
+ - Create variable `is_hintable` that is a read-only `AliasProperty` bound to `self.parent`. It is `True` if the parent is a `Widget` that listens to `size_hint`.
+   - Create an additional variable that is a `ListProperty`. It allows the user to add additional `Widget`s in case they have their own internal `Widget`s which also listen to `size_hint`.  
