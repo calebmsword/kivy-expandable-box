@@ -1,0 +1,166 @@
+BoxLayout:
+    orientation: "vertical"
+    BoxLayout:
+        ExpandableLabel:
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 1, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            id: expandable_hor
+            allow_expand_horizontal: True
+            start_expanded_horizontal: False
+            min_width_hint:  1./3
+            full_width_hint: 1
+            text: "Expandable"
+        Button:
+            id: btn_stateful_hor
+            text: "<== Expandable horizontally"
+            on_release: expandable_hor.toggle_expand_horizontal()
+    BoxLayout:
+        BoxLayout:
+            ExpandableLabel:
+                canvas.before:
+                    Color:
+                        rgba: 1, 0, 0, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                id: expandable_vert
+                allow_expand_vertical: True
+                start_expanded_vertical: False
+                expand_animation_timeout: 1
+                min_height_hint:  0.25
+                full_height_hint: 0.50
+                text: "Expandable"
+        BoxLayout:
+            orientation: "vertical"
+            Button:
+                id: btn_stateful_vert_01
+                text: "<== Force " + ("expand" if expandable_vert.retracted_vertical else "retract") + " vertically"
+                on_release: expandable_vert.force_expand_vertical() if expandable_vert.retracted_vertical else expandable_vert.force_retract_vertical()
+            Button:
+                id: btn_stateful_vert_02
+                text: "<== Toggle vertically"
+                on_release: expandable_vert.toggle_expand_vertical()
+    BoxLayout:
+        AnchorLayout:
+            anchor_x: "center"
+            anchor_y: "center"
+            ExpandableLabel:
+                id: expandable_both
+                allow_expand_horizontal: True
+                allow_expand_vertical: True
+                start_expanded_horizontal: False
+                start_expanded_vertical: False
+
+                min_width_hint:   0.25
+                full_width_hint:  0.50
+                min_height_hint:  0.25
+                full_height_hint: 0.50
+
+                # min_width: 150
+                # full_width_hint:  1
+                # min_height_hint:  0.25
+                # full_height: 400
+
+                # min_width: 150
+                # full_width: 300
+                # min_height: 200
+                # full_height: 400
+
+                expand_animation_timeout: 1
+                color: 0, 0, 0, 1
+                text: "Expandable"
+                canvas.before:
+                    Color:
+                        rgba: 0, 1, 0, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+        BoxLayout:
+            Button:
+                id: btn_stateful_hor_02
+                size_hint_x: 1
+                text: "<== Toggle horizontal"
+                on_release: expandable_both.toggle_expand_horizontal()
+            Button:
+                id: btn_stateful_vert_02
+                size_hint_x: 1
+                text: "<== Toggle vertical"
+                on_release: expandable_both.toggle_expand_vertical()
+            GridLayout:
+                cols: 2
+                size_hint_x: 2
+                Button:
+                    text: "Force expand vertical"
+                    on_release: expandable_both.force_expand_vertical()
+                Button:
+                    text: "Force retract vertical"
+                    on_release: expandable_both.force_retract_vertical()
+                Button:
+                    text: "Force expand horizontal"
+                    on_release: expandable_both.force_expand_horizontal()
+                Button:
+                    text: "Force retract horizontal"
+                    on_release: expandable_both.force_retract_horizontal()
+    BoxLayout:
+        AnchorLayout:
+            anchor_x: "left"
+            anchor_y: "bottom"
+            ExpandableLabel:
+                id: expandable_both_2
+                allow_expand_horizontal: True
+                allow_expand_vertical: True
+                start_expanded_horizontal: True
+                start_expanded_vertical: False
+
+                # min_width_hint:   0.25
+                # full_width_hint:  0.50
+                # min_height_hint:  0.25
+                # full_height_hint: 0.50
+
+                min_width: 150
+                full_width_hint:  1
+                min_height_hint:  0.25
+                full_height: 240
+
+                # min_width: 150
+                # full_width: 300
+                # min_height: 200
+                # full_height: 400
+
+                expand_animation_timeout: 0.10
+                color: 0, 0, 0, 1
+                text: "Expandable"
+                canvas.before:
+                    Color:
+                        rgba: 0, 1, 1, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+        BoxLayout:
+            Button:
+                size_hint_x: 1
+                text: "Force toggle horizontal"
+                on_release: expandable_both_2.force_toggle_horizontal()
+            Button:
+                size_hint_x: 1
+                text: "Force toggle vertical"
+                on_release: expandable_both_2.force_toggle_vertical()
+            GridLayout:
+                cols: 2
+                size_hint_x: 2
+                Button:
+                    text: "Expand vertical"
+                    on_release: expandable_both_2.expand_vertical()
+                Button:
+                    text: "Retract vertical"
+                    on_release: expandable_both_2.retract_vertical()
+                Button:
+                    text: "Expand horizontal"
+                    on_release: expandable_both_2.expand_horizontal()
+                Button:
+                    text: "Retract horizontal"
+                    on_release: expandable_both_2.retract_horizontal()
