@@ -1,6 +1,9 @@
 # pylint: disable=wrong-import-position
 
-from kivy import Config
+import kivy
+kivy.require("2.0.0")
+
+from kivy import Config  # noqa: E402
 Config.read("config.ini")
 
 from kivy.app import App  # noqa: E402

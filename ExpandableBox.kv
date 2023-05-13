@@ -9,10 +9,10 @@
 #: set TRANSPARENT 0, 0, 0, 0
 
 <ExpandableLabel@Label+ExpandableMixin>:
-    background_color: TRANSPARENT
+    bg_color: TRANSPARENT
     canvas.before:
         Color:
-            rgba: self.background_color if self.background_color is not None else TRANSPARENT
+            rgba: self.bg_color if self.bg_color is not None else TRANSPARENT
         Rectangle:
             pos: self.pos
             size: self.size
@@ -21,7 +21,7 @@ BoxLayout:
     orientation: "vertical"
     BoxLayout:
         ExpandableLabel:
-            background_color: BLUE
+            bg_color: BLUE
             id: expandable_hor
             allow_expand_horizontal: True
             start_expanded_horizontal: False
@@ -35,7 +35,7 @@ BoxLayout:
     BoxLayout:
         BoxLayout:
             ExpandableLabel:
-                background_color: RED
+                bg_color: RED
                 id: expandable_vert
                 allow_expand_vertical: True
                 start_expanded_vertical: False
@@ -80,9 +80,9 @@ BoxLayout:
                 # full_height: 400
 
                 expand_animation_timeout: 1
-                color: 0, 0, 0, 1
+                color: BLACK
                 text: "Expandable"
-                background_color: GREEN
+                bg_color: GREEN
         BoxLayout:
             Button:
                 id: btn_stateful_hor_02
@@ -136,9 +136,9 @@ BoxLayout:
                 # full_height: 400
 
                 expand_animation_timeout: 0.10
-                color: 0, 0, 0, 1
+                color: BLACK
                 text: "Expandable"
-                background_color: CYAN
+                bg_color: CYAN
         BoxLayout:
             Button:
                 size_hint_x: 1

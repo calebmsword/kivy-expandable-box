@@ -1,4 +1,6 @@
+from kivy import Logger
 from kivy.animation import Animation
+from kivy.core.window import Window
 from kivy.properties import AliasProperty
 from kivy.properties import BooleanProperty
 from kivy.properties import BoundedNumericProperty
@@ -335,60 +337,80 @@ class ExpandableMixin(Widget):
         self._update_width()
         self._update_height()
 
+    def _resolve_parent(self, *_args):
+        if self.parent is not None:
+            return
+
+        def find_self(widget):
+            for child in widget.children:
+                if self is child:
+                    self.parent = widget
+                    return
+                find_self(child)
+        find_self(Window)
+
     def _resolve_size_hint_x(self, *_args):
         """
         If size_hint_x is None, then animating size_hint_x will return an error.
         Hence, we need to take the current width and convert it to the
         corresponding size_hint_x.
         """
-        if self.size_hint_x is None:
-            if self.parent is None:
-                self.size_hint_x = 1
-                return
-            num_siblings = len(self.parent.children) - 1
-            if num_siblings == 0:
-                # If a Layout has only one child, then size_hint_x represents
-                # the percent width of the parent
-                self.size_hint_x = self.width / self.parent.width
-            else:
-                # If a Layout has multiple children, then size_hint_x is a
-                # relative value. Sum the (non-None) size_hint_x's of all
-                # children. The width of a child is the ratio of its size_hint_x
-                # to the sum total of all size_hint_x's.
-                # If a child has a size_hint_x of None, then its total width is
-                # subtracted from the width of the containing Layout. All the
-                # children with non-None size_hint_x's have widths proportional
-                # to the remaining width.
-                summ = 0.
-                fixed_widths = 0.
-                min_size_hint = None
-                for child in self.parent.children:
-                    if child.size_hint_x is not None:
-                        if min_size_hint is None:
-                            min_size_hint = child.size_hint_x
-                        else:
-                            min_size_hint = min(
-                                min_size_hint,
-                                child.size_hint_x
-                            )
-                        summ += child.size_hint_x
-                    else:
-                        fixed_widths += child.width
-                allotted_width = min(0, self.parent.width - fixed_widths)
+        if self.size_hint_x is not None:
+            return
+        self._resolve_parent()
+        if self.parent is None:
+            Logger.critical("Widget is detached from Widget tree!")
+            self.size_hint_x = 1
+            return
+        if self.parent is Window:
+            # Window size_hint is always relative to window size even if the
+            # Window has multiple children
+            self.size_hint_x = self.width / Window.width
+            return
+        num_siblings = len(self.parent.children) - 1
+        if num_siblings == 0:
+            # If a Layout has only one child, then size_hint_x represents the
+            # percent width of the parent
+            self.size_hint_x = self.width / self.parent.width
+            return
+        # If a Layout has multiple children, then size_hint_x is a relative
+        # value. Sum the (non-None) size_hint_x's of all children. The width of
+        # a child is the ratio of its size_hint_x to the sum total of all
+        # size_hint_x's multiplied by the parent width.
+        # If a child has a size_hint_x of None, then total width is subtracted
+        # from the width of the containing Layout. All the children with
+        # non-None size_hint_x's have widths proportional to the remaining
+        # width.
+        summ = 0.
+        fixed_widths = 0.
+        min_size_hint = None
+        for child in self.parent.children:
+            if child.size_hint_x is not None:
                 if min_size_hint is None:
-                    # No children have a size_hint_x, so any non-None value of
-                    # size_hint_x will cause our Widget to take all allotted
-                    # width
-                    self.size_hint_x = 1
-                elif allotted_width == 0.:
-                    # size_hint_x = 0 is actually equivalent to size_hint_x = 1
-                    # (???) so instead make it small enough to round any value
-                    # down to 0 pixels
-                    self.size_hint_x = 0.000001 * min_size_hint
+                    min_size_hint = child.size_hint_x
                 else:
-                    # by definition,
-                    #   size_hint_x / summ = width / allotted_width
-                    self.size_hint_x = summ * self.width / allotted_width
+                    min_size_hint = min(
+                        min_size_hint,
+                        child.size_hint_x
+                    )
+                summ += child.size_hint_x
+            else:
+                fixed_widths += child.width
+        allotted_width = min(0, self.parent.width - fixed_widths)
+        if min_size_hint is None:
+            # No children have a size_hint_x, so any non-None value of
+            # size_hint_x will cause our Widget to take all allotted
+            # width
+            self.size_hint_x = 1
+        elif allotted_width == 0.:
+            # size_hint_x = 0 is actually equivalent to size_hint_x = 1
+            # (???) so instead make it small enough to round any value
+            # down to 0 pixels
+            self.size_hint_x = 0.000001 * min_size_hint
+        else:
+            # by definition,
+            #   size_hint_x / summ = width / allotted_width
+            self.size_hint_x = summ * self.width / allotted_width
 
     def _animate_width_hint(self, new_width_hint, *_args):
         if self.allow_expand_horizontal:
