@@ -2,7 +2,7 @@
 A mixin for creating robust expandable widgets in Kivy.
 
 TO-DO:
- - [ ] Make animation timings dynamic so that, for example, if you interrupt an expansion for a Widget whose `expand_animation_timeout` is 3 seconds in 0.5 seconds, you don't have to wait 3 agonizing seconds for the animation to complete, and instead only wait 2.5 seconds.
+ - [x] Make animation timings dynamic so that, for example, if you interrupt an expansion for a Widget whose `expand_animation_timeout` is 3 seconds in 0.5 seconds, you don't have to wait 3 agonizing seconds for the animation to complete, and instead only wait 2.5 seconds.
  - [x] Refactor variables which use "expanding" when they should use "resizing". 
    - [x] Refactor `expanding` into `resizing`.
    - [x] Refactor `_expand_animation` into `_resize_animation`.
