@@ -1,4 +1,5 @@
 #: import ExpandableMixin expandable.ExpandableMixin
+#: import NoTransition kivy.uix.screenmanager.NoTransition
 
 #: set BLACK 0, 0, 0, 1
 #: set WHITE 1, 1, 1, 1
@@ -7,159 +8,500 @@
 #: set GREEN 0, 1, 0, 1
 #: set CYAN  0, 1, 1, 1
 #: set TRANSPARENT 0, 0, 0, 0
+#: set GREY 0.77, 0.77, 0.77, 1
+#: set DARK_GREY 0.44, 0.44, 0.44, 1
 
-<ExpandableLabel@Label+ExpandableMixin>:
+
+#: set PAGES ["01", "02", "03"]
+#: set NAV_SIZE_HINT_Y 0.2
+BoxLayout:
+    orientation: "vertical"
+    BoxLayout:
+        size_hint_y: NAV_SIZE_HINT_Y
+        Button:
+            text: "<= Prev Page"
+            on_release:
+                manager.current = PAGES[PAGES.index(manager.current) - 1]
+        Button:
+            text: "Next Page =>"
+            on_release:
+                if PAGES.index(manager.current) + 1 == len(PAGES): \
+                manager.current = PAGES[0]
+                else: manager.current = PAGES[PAGES.index(manager.current) + 1]
+    ScreenManager:
+        id: manager
+        size_hint_y: 1 - NAV_SIZE_HINT_Y
+        transition: NoTransition()
+        Page01:
+        Page02:
+        Page03:
+
+
+<ColoredLabel@Label>:
     bg_color: TRANSPARENT
     canvas.before:
         Color:
-            rgba: self.bg_color if self.bg_color is not None else TRANSPARENT
+            rgba: TRANSPARENT if self.bg_color is None else self.bg_color
         Rectangle:
             pos: self.pos
             size: self.size
 
-BoxLayout:
-    orientation: "vertical"
+
+<ExpandableLabel@ColoredLabel+ExpandableMixin>:
+    # pass
+
+
+<Page01@Screen>:
+    name: "01"
     BoxLayout:
-        ExpandableLabel:
-            bg_color: BLUE
-            id: expandable_hor
-            allow_expand_horizontal: True
-            start_expanded_horizontal: False
-            min_width_hint:  1./3
-            full_width_hint: 1
-            text: "Expandable"
-        Button:
-            id: btn_stateful_hor
-            text: "<== Expandable horizontally"
-            on_release: expandable_hor.toggle_expand_horizontal()
-    BoxLayout:
+        orientation: "vertical"
         BoxLayout:
             ExpandableLabel:
-                bg_color: RED
-                id: expandable_vert
-                allow_expand_vertical: True
-                start_expanded_vertical: False
-                expand_animation_timeout: 1
-                min_height_hint:  0.25
-                full_height_hint: 0.50
-                text: "Expandable"
-        BoxLayout:
-            orientation: "vertical"
-            Button:
-                id: btn_stateful_vert_01
-                text: "<== Force " + ("expand" if expandable_vert.retracted_vertical else "retract") + " vertically"
-                on_release: expandable_vert.force_expand_vertical() if expandable_vert.retracted_vertical else expandable_vert.force_retract_vertical()
-            Button:
-                id: btn_stateful_vert_02
-                text: "<== Toggle vertically"
-                on_release: expandable_vert.toggle_expand_vertical()
-    BoxLayout:
-        AnchorLayout:
-            anchor_x: "center"
-            anchor_y: "center"
-            ExpandableLabel:
-                id: expandable_both
+                bg_color: BLUE
+                id: expandable_hor
                 allow_expand_horizontal: True
-                allow_expand_vertical: True
                 start_expanded_horizontal: False
-                start_expanded_vertical: False
-
-                min_width_hint:   0.25
-                full_width_hint:  0.50
-                min_height_hint:  0.25
-                full_height_hint: 0.50
-
-                # min_width: 150
-                # full_width_hint:  1
-                # min_height_hint:  0.25
-                # full_height: 400
-
-                # min_width: 150
-                # full_width: 300
-                # min_height: 200
-                # full_height: 400
-
-                expand_animation_timeout: 1
-                color: BLACK
+                min_width_hint:  1./3
+                full_width_hint: 1
                 text: "Expandable"
-                bg_color: GREEN
+            Button:
+                id: btn_stateful_hor
+                text: "<== Expandable horizontally"
+                on_release: expandable_hor.toggle_expand_horizontal()
         BoxLayout:
-            Button:
-                id: btn_stateful_hor_02
-                size_hint_x: 1
-                text: "<== Toggle horizontal"
-                on_release: expandable_both.toggle_expand_horizontal()
-            Button:
-                id: btn_stateful_vert_02
-                size_hint_x: 1
-                text: "<== Toggle vertical"
-                on_release: expandable_both.toggle_expand_vertical()
-            GridLayout:
-                cols: 2
-                size_hint_x: 2
+            BoxLayout:
+                ExpandableLabel:
+                    bg_color: RED
+                    id: expandable_vert
+                    allow_expand_vertical: True
+                    start_expanded_vertical: False
+                    expand_animation_timeout: 1
+                    min_height_hint:  0.25
+                    full_height_hint: 0.50
+                    text: "Expandable"
+            BoxLayout:
+                orientation: "vertical"
                 Button:
-                    text: "Force expand vertical"
-                    on_release: expandable_both.force_expand_vertical()
+                    id: btn_stateful_vert_01
+                    text: "<== Force " + ("expand" if expandable_vert.in_retract_state_vertical else "retract") + " vertically"
+                    on_release: expandable_vert.force_expand_vertical() if expandable_vert.in_retract_state_vertical else expandable_vert.force_retract_vertical()
                 Button:
-                    text: "Force retract vertical"
-                    on_release: expandable_both.force_retract_vertical()
+                    id: btn_stateful_vert_02
+                    text: "<== Toggle vertically"
+                    on_release: expandable_vert.toggle_expand_vertical()
+        BoxLayout:
+            AnchorLayout:
+                anchor_x: "center"
+                anchor_y: "center"
+                ExpandableLabel:
+                    id: expandable_both
+                    allow_expand_horizontal: True
+                    allow_expand_vertical: True
+                    start_expanded_horizontal: False
+                    start_expanded_vertical: False
+                    min_width_hint:   0.25
+                    full_width_hint:  0.50
+                    min_height_hint:  0.25
+                    full_height_hint: 0.50
+                    duration_resize: 0.75
+                    transition_resize: "out_bounce"
+                    color: BLACK
+                    text: "Expandable"
+                    bg_color: GREEN
+            BoxLayout:
                 Button:
-                    text: "Force expand horizontal"
-                    on_release: expandable_both.force_expand_horizontal()
+                    id: btn_stateful_hor_02
+                    size_hint_x: 1
+                    text: "<== Toggle horizontal"
+                    on_release: expandable_both.toggle_expand_horizontal()
                 Button:
-                    text: "Force retract horizontal"
-                    on_release: expandable_both.force_retract_horizontal()
+                    id: btn_stateful_vert_02
+                    size_hint_x: 1
+                    text: "<== Toggle vertical"
+                    on_release: expandable_both.toggle_expand_vertical()
+                GridLayout:
+                    cols: 2
+                    size_hint_x: 2
+                    Button:
+                        text: "Force expand vertical"
+                        on_release: expandable_both.force_expand_vertical()
+                    Button:
+                        text: "Force retract vertical"
+                        on_release: expandable_both.force_retract_vertical()
+                    Button:
+                        text: "Force expand horizontal"
+                        on_release: expandable_both.force_expand_horizontal()
+                    Button:
+                        text: "Force retract horizontal"
+                        on_release: expandable_both.force_retract_horizontal()
+        BoxLayout:
+            AnchorLayout:
+                anchor_x: "left"
+                anchor_y: "bottom"
+                ExpandableLabel:
+                    id: expandable_both_2
+                    allow_expand_horizontal: True
+                    allow_expand_vertical: True
+                    start_expanded_horizontal: True
+                    start_expanded_vertical: False
+                    min_width: 150
+                    full_width_hint:  1
+                    min_height_hint:  0.25
+                    full_height: 240
+                    expand_animation_timeout: 0.10
+                    color: BLACK
+                    text: "Expandable"
+                    bg_color: CYAN
+            BoxLayout:
+                Button:
+                    size_hint_x: 1
+                    text: "Force toggle horizontal"
+                    on_release: expandable_both_2.force_toggle_horizontal()
+                Button:
+                    size_hint_x: 1
+                    text: "Force toggle vertical"
+                    on_release: expandable_both_2.force_toggle_vertical()
+                GridLayout:
+                    cols: 2
+                    size_hint_x: 2
+                    Button:
+                        text: "Expand vertical"
+                        on_release: expandable_both_2.expand_vertical()
+                    Button:
+                        text: "Retract vertical"
+                        on_release: expandable_both_2.retract_vertical()
+                    Button:
+                        text: "Expand horizontal"
+                        on_release: expandable_both_2.expand_horizontal()
+                    Button:
+                        text: "Retract horizontal"
+                        on_release: expandable_both_2.retract_horizontal()
+
+
+#: set EXPANDABLE_CONTAINER_SIZE_HINT_X 0.75
+<Page02@Screen>:
+    name: "02"
     BoxLayout:
-        AnchorLayout:
-            anchor_x: "left"
-            anchor_y: "bottom"
-            ExpandableLabel:
-                id: expandable_both_2
-                allow_expand_horizontal: True
-                allow_expand_vertical: True
-                start_expanded_horizontal: True
-                start_expanded_vertical: False
-
-                # min_width_hint:   0.25
-                # full_width_hint:  0.50
-                # min_height_hint:  0.25
-                # full_height_hint: 0.50
-
-                min_width: 150
-                full_width_hint:  1
-                min_height_hint:  0.25
-                full_height: 240
-
-                # min_width: 150
-                # full_width: 300
-                # min_height: 200
-                # full_height: 400
-
-                expand_animation_timeout: 0.10
-                color: BLACK
-                text: "Expandable"
-                bg_color: CYAN
+        id: page_two_container
+        orientation: "vertical"
         BoxLayout:
-            Button:
-                size_hint_x: 1
-                text: "Force toggle horizontal"
-                on_release: expandable_both_2.force_toggle_horizontal()
-            Button:
-                size_hint_x: 1
-                text: "Force toggle vertical"
-                on_release: expandable_both_2.force_toggle_vertical()
-            GridLayout:
-                cols: 2
-                size_hint_x: 2
+            id: first_row
+            BoxLayout:
+                id: first_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 0, 10, 0, 20
+                spacing: 15
+                ExpandableLabel:
+                    id: first_row_expandable
+                    bg_color: BLUE
+                    color: WHITE
+                    text: "Expandable"
+                    allow_expand_vertical: True
+                    min_height: 50
+                    full_height_hint: 1
+                ColoredLabel:
+                    bg_color: GREY
+                    color: BLACK
+                    text: "child"
+            BoxLayout:
+                id: first_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
                 Button:
-                    text: "Expand vertical"
-                    on_release: expandable_both_2.expand_vertical()
+                    text: "Toggle expand vertical"
+                    on_release: first_row_expandable.toggle_expand_vertical()
+        BoxLayout:
+            id: second_row
+            BoxLayout:
+                id: second_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 0, 10, 0, 20
+                spacing: 15
+                orientation: "vertical"
+                ExpandableLabel:
+                    id: second_row_expandable
+                    bg_color: CYAN
+                    color: BLACK
+                    text: "Expandable"
+                    allow_expand_vertical: True
+                    start_expanded_vertical: False
+                    min_height: 50
+                    full_height_hint: 1
+                ColoredLabel:
+                    bg_color: GREY
+                    color: BLACK
+                    text: "child"
+            BoxLayout:
+                id: second_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
                 Button:
-                    text: "Retract vertical"
-                    on_release: expandable_both_2.retract_vertical()
+                    text: "Toggle expand vertical"
+                    on_release: second_row_expandable.toggle_expand_vertical()
+        BoxLayout:
+            id: third_row
+            BoxLayout:
+                id: third_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 0, 10, 0, 20
+                spacing: 15
+                orientation: "vertical"
+                ExpandableLabel:
+                    id: third_row_expandable
+                    bg_color: CYAN
+                    color: BLACK
+                    text: "Expandable"
+                    allow_expand_vertical: True
+                    min_height: 50
+                    full_height_hint: 1
+            BoxLayout:
+                id: third_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
                 Button:
-                    text: "Expand horizontal"
-                    on_release: expandable_both_2.expand_horizontal()
+                    text: "Toggle expand vertical"
+                    on_release: third_row_expandable.toggle_expand_vertical()
+        BoxLayout:
+            id: fourth_row
+            BoxLayout:
+                id: fourth_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 0, 10, 0, 20
+                spacing: 15
+                orientation: "vertical"
+                ExpandableLabel:
+                    id: fourth_row_expandable
+                    bg_color: CYAN
+                    color: BLACK
+                    text: "Expandable"
+                    allow_expand_vertical: True
+                    min_height: 50
+                    full_height_hint: 1
+                ColoredLabel:
+                    size_hint_y: None
+                    height: 13
+                    bg_color: DARK_GREY
+                    text: "child"
+            BoxLayout:
+                id: fourth_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
                 Button:
-                    text: "Retract horizontal"
-                    on_release: expandable_both_2.retract_horizontal()
+                    text: "Toggle expand vertical"
+                    on_release: fourth_row_expandable.toggle_expand_vertical()
+        BoxLayout:
+            id: fifth_row
+            BoxLayout:
+                id: fifth_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 0, 10, 0, 20
+                spacing: 15
+                orientation: "vertical"
+                ExpandableLabel:
+                    id: fifth_row_expandable
+                    bg_color: BLUE
+                    color: WHITE
+                    text: "Expandable"
+                    allow_expand_vertical: True
+                    min_height: 50
+                    full_height_hint: 1
+                ColoredLabel:
+                    bg_color: DARK_GREY
+                    text: "child"
+                ColoredLabel:
+                    size_hint_y: None
+                    height: 21
+                    bg_color: DARK_GREY
+                    text: "child"
+            BoxLayout:
+                id: fifth_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
+                Button:
+                    text: "Toggle expand horizontal"
+                    on_release: fifth_row_expandable.toggle_expand_vertical()
+
+
+<Page03@Screen>:
+    name: "03"
+    BoxLayout:
+        id: page_three_container
+        orientation: "vertical"
+        BoxLayout:
+            id: first_row
+            BoxLayout:
+                id: first_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 10, 0, 20, 0
+                spacing: 15
+                orientation: "vertical"
+                ExpandableLabel:
+                    id: first_row_expandable
+                    bg_color: BLUE
+                    color: WHITE
+                    text: "Expandable"
+                    allow_expand_horizontal: True
+                    min_width: 50
+                    full_width_hint: 1
+                ColoredLabel:
+                    bg_color: GREY
+                    color: BLACK
+                    text: "child"
+            BoxLayout:
+                id: first_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
+                Button:
+                    text: "Toggle expand horizontal"
+                    on_release: first_row_expandable.toggle_expand_horizontal()
+        BoxLayout:
+            id: second_row
+            BoxLayout:
+                id: second_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 10, 0, 20, 0
+                spacing: 15
+                ExpandableLabel:
+                    id: second_row_expandable
+                    bg_color: CYAN
+                    color: BLACK
+                    text: "Expandable"
+                    allow_expand_horizontal: True
+                    start_expanded_horizontal: False
+                    min_width: 50
+                    full_width_hint: 1
+                ColoredLabel:
+                    bg_color: DARK_GREY
+                    color: WHITE
+                    text: "child"
+            BoxLayout:
+                id: second_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
+                Button:
+                    text: "Toggle expand horizontal"
+                    on_release: second_row_expandable.toggle_expand_horizontal()
+        BoxLayout:
+            id: third_row
+            BoxLayout:
+                id: third_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 10, 0, 20, 0
+                spacing: 15
+                ExpandableLabel:
+                    id: third_row_expandable
+                    bg_color: BLUE
+                    color: WHITE
+                    text: "Expandable"
+                    allow_expand_horizontal: True
+                    start_expanded_horizontal: True
+                    min_width: 50
+                    full_width_hint: 1
+                    duration_resize: 5
+#                    fixed_duration_horizontal: True
+                    duration_expand_horizontal: 2.5
+                    duration_retract_horizontal: 5
+            BoxLayout:
+                id: third_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
+                Button:
+                    text: "Toggle expand horizontal"
+                    on_release: third_row_expandable.toggle_expand_horizontal()
+        BoxLayout:
+            id: fourth_row
+            BoxLayout:
+                id: fourth_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 10, 0, 20, 0
+                spacing: 15
+                ExpandableLabel:
+                    id: fourth_row_expandable
+                    bg_color: BLUE
+                    color: WHITE
+                    text: "Expandable"
+                    allow_expand_horizontal: True
+                    min_width: 50
+                    full_width_hint: 1
+                ColoredLabel:
+                    size_hint_x: None
+                    width: 55
+                    bg_color: DARK_GREY
+                    text: "child"
+                ColoredLabel:
+                    size_hint_x: None
+                    width: 77
+                    bg_color: DARK_GREY
+                    text: "child"
+            BoxLayout:
+                id: fourth_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
+                Button:
+                    text: "Toggle expand horizontal"
+                    on_release: fourth_row_expandable.toggle_expand_horizontal()
+        BoxLayout:
+            id: fifth_row
+            BoxLayout:
+                id: fifth_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 10, 0, 20, 0
+                spacing: 15
+                ExpandableLabel:
+                    id: fifth_row_expandable
+                    bg_color: BLUE
+                    color: WHITE
+                    text: "Expandable"
+                    allow_expand_horizontal: True
+                    min_width: 50
+                    full_width_hint: 1
+                ColoredLabel:
+                    bg_color: DARK_GREY
+                    text: "child"
+                ColoredLabel:
+                    size_hint_x: None
+                    width: 77
+                    bg_color: DARK_GREY
+                    text: "child"
+            BoxLayout:
+                id: fifth_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
+                Button:
+                    text: "Toggle expand horizontal"
+                    on_release: fifth_row_expandable.toggle_expand_horizontal()
+        BoxLayout:
+            id: sixth_row
+            BoxLayout:
+                id: sixth_row_expandable_container
+                size_hint_x: EXPANDABLE_CONTAINER_SIZE_HINT_X
+                padding: 10, 0, 20, 0
+                spacing: 15
+                ExpandableLabel:
+                    id: sixth_row_expandable
+                    bg_color: BLUE
+                    color: WHITE
+                    text: "Expandable"
+                    allow_expand_horizontal: True
+                    min_width: 50
+                    full_width_hint: 1
+                ColoredLabel:
+                    size_hint_x: None
+
+                    # get full allotted width
+                    layout: sixth_row_expandable_container
+                    padding_hor: sum(self.layout.padding[0::2])
+                    spacing: self.layout.spacing
+                    spacing_hor: self.spacing * (len(self.layout.children) - 1)
+                    pad_and_space: self.padding_hor + self.spacing_hor
+                    width: self.layout.width - self.pad_and_space
+
+                    bg_color: DARK_GREY
+                    text: "child"
+            BoxLayout:
+                id: sixth_row_behavior_container
+                size_hint_x: 1 - EXPANDABLE_CONTAINER_SIZE_HINT_X
+                BoxLayout:
+                    orientation: "vertical"
+                    ColoredLabel:
+                        bg_color: WHITE
+                        color: BLACK
+                        text: "This is expected behavior, believe it or not..."
+                    BoxLayout:
+                        Button:
+                            text: "Toggle expand horizontal"
+                            on_release: sixth_row_expandable.toggle_expand_horizontal()
+                        ColoredLabel:
+                            bg_color: RED
+                            result: sixth_row_expandable.in_expand_state_horizontal
+                            text: "Is expanded: {0}".format(self.result)
