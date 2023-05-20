@@ -21,7 +21,7 @@ TO-DO:
       - [x] `expand_animation_timeout_horizontal`  → `duration_resize_horizontal`
       - [x] `expand_animation_timeout_vertical`  → `duration_resize_vertical`
    - [x] Prioritize based on specificity. For example, `duration_expand_horizontal` → `duration_resize_horizontal` → `duration_resize`
- - [ ] Create fields that allow users to add custom transition parameters to each animation (expand hor, expand ver, retract hor, retract ver) with levels of specificity equivalent to animation durations.
+ - [x] Create fields that allow users to add custom transition parameters to each animation (expand hor, expand ver, retract hor, retract ver) with levels of specificity equivalent to animation durations.
  - [ ] Fix `resolve_size_hint_x` and `resolve_size_hint_y`.
    - [ ] Take notes on how each Layout type (aside from RecycleViewBoxLayout and RecycleViewGridLayout) manage size_hints.
      - [x] Window
