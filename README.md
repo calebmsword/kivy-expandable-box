@@ -42,9 +42,24 @@ Widgets which inherit the ExpandableMixin receive a rich API for accessing and m
 
 ```kvlang
 #: set WHITE 1, 1, 1, 1
+#: set GREY 0.77, 0.77, 0.77, 1
+#: set LIGHT_GREY 0.88, 0.88, 0.88, 1
 #: set BLACK 0, 0, 0, 1
 #: set BLUE  0, 0, 1, 1
 #: set TRANSPARENT 0, 0, 0, 0
+
+<ColoredLabel@Label>:
+    bg_color: TRANSPARENT
+    canvas.before:
+        Color:
+            rgba: TRANSPARENT if self.bg_color is None else self.bg_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+<ExpandableLabel@ColoredLabel+ExpandableMixin>:
+
 
 BoxLayout:
     BoxLayout:
@@ -53,66 +68,55 @@ BoxLayout:
             text: "Expandable"
             bg_color: BLUE
             color: WHITE
-     BoxLayout:
-         orientation: "vertical"
-         GridLayout:
-             cols: 3
-             ColoredLabel:
-                 bg_color: WHITE
-                 color: BLACK
-                 text: "expand_state_x: {0}".format(self.expand_state_x)
-             ColoredLabel:
-                 bg_color: WHITE
-                 color: BLACK
-                 text: "expanding_x: {0}".format(self.expanding_x)
-             ColoredLabel:
-                 bg_color: WHITE
-                 color: BLACK
-                 text: "expanded_x: {0}".format(self.expanded_x)
-             ColoredLabel:
-                 bg_color: WHITE
-                 color: BLACK
-                 text: "retract_state_x: {0}".format(self.retract_state_x)
-             ColoredLabel:
-                 bg_color: WHITE
-                 color: BLACK
-                 text: "retracting_x: {0}".format(self.retracting_x)
-              ColoredLabel:
-                 bg_color: WHITE
-                 color: BLACK
-                 text: "retracted_x: {0}".format(self.retracted_x)
-         BoxLayout:
-             Button:
-                 text: "toggle_x()"
-                 on_release: expandable.toggle_x()
-             GridLayout:
-                 cols: 2
-                 Button:
-                     text: "expand_x()"
-                     on_release: expandable.expand_x()
-                 Button:
-                     text: "retract_x()"
-                     on_release: expandable.retract_x()
-                 Button:
-                     text: "instant_expand_x()"
-                     on_release: expandable.instant_expand_x()
-                 Button:
-                     text: "instant_retract_x()"
-                     on_release: expandable.instant_retract_x()
-                 
-         
-         
-
-<ColoredLabel@Label>:
-    bg_color: TRANSPARENT
-        self.canvas.before:
-            Color:
-                rgba: self.bg_color if self.bg_color is not None else TRANSPARENT
-            Rectangle:
-                pos: self.pos
-                size: self.size
- 
-<ExpandableLabel@ColoredLabel+ExpandableMixin>:
+            min_x: 100
+            max_x_hint: 1
+            duration_resize: 3
+    BoxLayout:
+        orientation: "vertical"
+        GridLayout:
+            cols: 3
+            ColoredLabel:
+                bg_color: GREY
+                color: BLACK
+                text: "expand_state_x: {{0}}".format(expandable.expand_state_x)
+            ColoredLabel:
+                bg_color: LIGHT_GREY
+                color: BLACK
+                text: "expanding_x: {{0}}".format(expandable.expanding_x)
+            ColoredLabel:
+                bg_color: GREY
+                color: BLACK
+                text: "expanded_x: {{0}}".format(expandable.expanded_x)
+            ColoredLabel:
+                bg_color: LIGHT_GREY
+                color: BLACK
+                text: "retract_state_x: {{0}}".format(expandable.retract_state_x)
+            ColoredLabel:
+                bg_color: GREY
+                color: BLACK
+                text: "retracting_x: {{0}}".format(expandable.retracting_x)
+            ColoredLabel:
+                bg_color: LIGHT_GREY
+                color: BLACK
+                text: "retracted_x: {{0}}".format(expandable.retracted_x)
+        BoxLayout:
+            Button:
+                text: "toggle_x()"
+                on_release: expandable.toggle_x()
+        GridLayout:
+            cols: 2
+            Button:
+                text: "expand_x()"
+                on_release: expandable.expand_x()
+            Button:
+                text: "retract_x()"
+                on_release: expandable.retract_x()
+            Button:
+                text: "instant_expand_x()"
+                on_release: expandable.instant_expand_x()
+            Button:
+                text: "instant_retract_x()"
+                on_release: expandable.instant_retract_x()
 
 ```
 </details>
@@ -152,37 +156,6 @@ Widgets can be expanded horizontally or vertically.
 When we say that this Widget is a mixin, we mean that it is not meant to be instantiated directly (although it can be) and instead is meant to be inherited by other Widgets.
 
 TO-DO:
- - [x] Rename API to make every name simpler.
-   - [x] in_expand_state_horizontal -> expand_state_x
-   - [x] create retract_state_x
-   - [x] toggle_expand_horizontal/vertical -> toggle_x/y
-   - [x] force_expand_horizontal/vertical -> instant_expand_x
-   - [x] min_width, full_width -> min_x, max_x
-   - [x] min_width_hint -> min_x_hint
- - [ ] Make it so `allow_expand_horizontal` is automatically set to True if min_x/hint or max_x/hint are not none.
- - [ ] Make those situations where you Log a warning now throw an ExpandableMixinError.
- - [ ] Raise an error if you try to animate/instant but there is no min/full for that value.
- - [ ] Put what is in `on_kv_post` in a private method and bind that method to `kv_post` in the constructor.
- - [x] Make animation timings dynamic so that, for example, if you interrupt an expansion for a Widget whose `expand_animation_timeout` is 3 seconds in 0.5 seconds, you don't have to wait 3 agonizing seconds for the animation to complete, and instead only wait 2.5 seconds.
- - [x] Refactor variables which use "expanding" when they should use "resizing". 
-   - [x] Refactor `expanding` into `resizing`.
-   - [x] Refactor `_expand_animation` into `_resize_animation`.
-   - [x] Refactor `on__expand_animation` to `on__resize_animation`
-   - [x] Create `expanding_horizontal`/`expanding_vertical` and `retracting_horizontal`/`retracting_vertical` as read-only AliasProperties.
-   - [x] ~~Refactor logic to use these new variables when appropriate.~~
- - [x] Guard all `force_xxx` methods based on whether `allow_expand_horizontal`/`allow_expand_vertical` are true.
- - [x] Allow for users to make the expansion and retraction animation durations different:
-   -  [x] create variables:
-      - [x] `duration_expand_horizontal`
-      - [x] `duration_expand_vertical`
-      - [x] `duration_retract_horizontal`
-      - [x] `duration_retract_vertical`
-   -  [x] refactor variables:
-      - [x] `expand_animation_timeout` → `duration_resize`
-      - [x] `expand_animation_timeout_horizontal`  → `duration_resize_horizontal`
-      - [x] `expand_animation_timeout_vertical`  → `duration_resize_vertical`
-   - [x] Prioritize based on specificity. For example, `duration_expand_horizontal` → `duration_resize_horizontal` → `duration_resize`
- - [x] Create fields that allow users to add custom transition parameters to each animation (expand hor, expand ver, retract hor, retract ver) with levels of specificity equivalent to animation durations.
  - [ ] Fix `resolve_size_hint_x` and `resolve_size_hint_y`.
    - [x] Take notes on how each Layout type (aside from RecycleViewBoxLayout and RecycleViewGridLayout) manage size_hints.
      - [x] Window
