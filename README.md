@@ -162,6 +162,7 @@ TO-DO:
  - [ ] Make it so `allow_expand_horizontal` is automatically set to True if min_x/hint or max_x/hint are not none.
  - [ ] Make those situations where you Log a warning now throw an ExpandableMixinError.
  - [ ] Raise an error if you try to animate/instant but there is no min/full for that value.
+ - [ ] Put what is in `on_kv_post` in a private method and bind that method to `kv_post` in the constructor.
  - [x] Make animation timings dynamic so that, for example, if you interrupt an expansion for a Widget whose `expand_animation_timeout` is 3 seconds in 0.5 seconds, you don't have to wait 3 agonizing seconds for the animation to complete, and instead only wait 2.5 seconds.
  - [x] Refactor variables which use "expanding" when they should use "resizing". 
    - [x] Refactor `expanding` into `resizing`.
