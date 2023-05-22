@@ -23,13 +23,30 @@ TO-DO:
    - [x] Prioritize based on specificity. For example, `duration_expand_horizontal` → `duration_resize_horizontal` → `duration_resize`
  - [x] Create fields that allow users to add custom transition parameters to each animation (expand hor, expand ver, retract hor, retract ver) with levels of specificity equivalent to animation durations.
  - [ ] Fix `resolve_size_hint_x` and `resolve_size_hint_y`.
-   - [ ] Take notes on how each Layout type (aside from RecycleViewBoxLayout and RecycleViewGridLayout) manage size_hints.
+   - [x] Take notes on how each Layout type (aside from RecycleViewBoxLayout and RecycleViewGridLayout) manage size_hints.
      - [x] Window
      - [x] FloatLayout
      - [x] RelativeLayout
      - [x] AnchorLayout
-     - [ ] StackLayout
+     - [x] StackLayout
      - [x] BoxLayout
-     - [ ] GridLayout (COMPLICATED!)
-   - [x] Take special notes on `GridLayout` because it is particularly complex.
+     - [x] GridLayout (COMPLICATED!)
+     - [x] Take special notes on `GridLayout` because it is particularly complex.
    - [ ] For `_resolve_size_hint_x` and `_resolve_size_hint_y`, check the instance of the containing Widget and perform the appropriate logic to resolve `size_hint_x` or `size_hint_y`.
+   - [ ] Perform extensive manual tests to ensure that you've implemented the size_hint resolvers propertly.
+      - [ ] Window
+      - [ ] FloatLayout
+      - [ ] RelativeLayout
+      - [ ] AnchorLayout
+      - [ ] StackLayout
+      - [ ] BoxLayout
+      - [ ] GridLayout (COMPLICATED!)
+    - [ ] Refactor resolver to handle size_hint_max_x and size_hint_max_y
+      - [ ] Investigate how size_hint_max_x and size_hint_max_y affect every hint listener
+        - [ ] Window
+        - [ ] FloatLayout
+        - [ ] RelativeLayout
+        - [ ] AnchorLayout
+        - [ ] StackLayout
+        - [ ] BoxLayout
+        - [ ] GridLayout (COMPLICATED!)
