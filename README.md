@@ -152,6 +152,16 @@ Widgets can be expanded horizontally or vertically.
 When we say that this Widget is a mixin, we mean that it is not meant to be instantiated directly (although it can be) and instead is meant to be inherited by other Widgets.
 
 TO-DO:
+ - [ ] Rename API to make every name simpler.
+   - [ ] in_expand_state_horizontal -> expand_state_x
+   - [ ] create retract_state_x
+   - [ ] toggle_expand_horizontal/vertical -> toggle_x/y
+   - [ ] force_expand_horizontal/vertical -> instant_expand_x
+   - [ ] min_width, full_width -> min_x, max_x
+   - [ ] min_width_hint -> min_x_hint
+ - [ ] Make it so `allow_expand_horizontal` is automatically set to True if min_x/hint or max_x/hint are not none.
+ - [ ] Make those situations where you Log a warning now throw an ExpandableMixinError.
+ - [ ] Raise an error if you try to animate/instant but there is no min/full for that value.
  - [x] Make animation timings dynamic so that, for example, if you interrupt an expansion for a Widget whose `expand_animation_timeout` is 3 seconds in 0.5 seconds, you don't have to wait 3 agonizing seconds for the animation to complete, and instead only wait 2.5 seconds.
  - [x] Refactor variables which use "expanding" when they should use "resizing". 
    - [x] Refactor `expanding` into `resizing`.
