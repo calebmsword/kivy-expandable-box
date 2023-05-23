@@ -1,13 +1,13 @@
 # kivy-expandable-box
 A robust mixin for creating expandable widgets in Kivy.
 
+When we say that this Widget is a mixin, we mean that it is not meant to be instantiated directly. Instead it should be inherited by other widgets. You can make any Kivy widget or custom widget expandable simply by having the class inherit this mixin!
+
 In Python:
 ```python
-s1 = "Expand me!"
-s2 = "Retract me!"
 class ExpandableButton(Button, ExpandableMixin):
     def on_expand_state_x(self, instance, expand_state_x):
-        self.text = s2 if expand_state_x else s1
+        self.text = "Retract me!" if expand_state_x else "Expand me!"
     
     def on_release(self, *_args):
         self.toggle_x()
@@ -21,10 +21,8 @@ class ExpandableButton(Button, ExpandableMixin):
 
 In kvlang:
 ```kvlang
-#: set s1 "Expand me!"
-#: set s2 "Retract me!"
 <ExpandableButton@Button+ExpandableMixin>:
-    text: s2 if self.expand_state_x else s1
+    text: "Retract me!" if self.expand_state_x else "Expand me!"
     on_release: self.toggle_x()
 
 ExpandableButton:
@@ -226,9 +224,6 @@ BoxLayout:
 ```
 
 </details>
-
-
-When we say that this Widget is a mixin, we mean that it is not meant to be instantiated directly (although it can be) and instead is meant to be inherited by other Widgets.
 
 TO-DO:
  - [ ] Fix `resolve_size_hint_x` and `resolve_size_hint_y`.
