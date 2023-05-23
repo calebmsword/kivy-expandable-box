@@ -144,8 +144,8 @@ BoxLayout:
 
 class ExpandableBoxApp(App):
 
-    # def build(self):
-    #     return root_widget
+    def build(self):
+        return root_widget
 
     def on_start(self):
         inspector.create_inspector(Window, self.root)

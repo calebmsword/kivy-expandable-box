@@ -649,6 +649,17 @@ class ExpandableMixin(Widget):
         super(ExpandableMixin, self).__init__(**kwargs)
 
     def start_resize_animation(self, animation: Animation, anim_type: bool):
+        """This method takes an animation object and performs that animation on
+        this widget. The second argument informs the method whether we are
+        animating width/size_hint_x or height/size_hint_y. This method then
+        binds to various events for the animation so that the relevant
+        properties of this widget (resizing, expanding_x, retracted_y, etc.) are
+        updated as expected.
+
+        In particular, the internal private method which updates the values of
+        width/height/size_hint_x/size_hint_y is executed upon the animation's
+        completion, guaranteed that the size_hint and size will be the value
+        specified by min_x/max_x/min_y/max_y/min_x_hint/max_x_hint/etc."""
         if anim_type is HORIZONTAL:
             def on_start(*_args):
                 self._timestamp_horizontal = time.perf_counter()
@@ -671,6 +682,8 @@ class ExpandableMixin(Widget):
         animation.start(self)
 
     def toggle_x(self, *_args):
+        """If horizontal resizing is allowed, then change the horizontal state
+        and animate to the new width."""
         if not self.allow_resize_x:
             return
 
@@ -695,6 +708,8 @@ class ExpandableMixin(Widget):
         self._expanded_horizontal = not self._expanded_horizontal
 
     def toggle_y(self, *_args):
+        """If vertical resizing is allowed, then change the vertical state and
+        animate to the new height."""
         if not self.allow_resize_y:
             return
 
@@ -720,22 +735,32 @@ class ExpandableMixin(Widget):
         self._expanded_vertical = not self._expanded_vertical
 
     def expand_x(self, *_args):
+        """If horizontal resizing is allowed, then ensure the horizontal state
+        is the expand state. If not, animate to the expanded width."""
         if not self._expanded_horizontal:
             self.toggle_x()
 
     def retract_x(self, *_args):
+        """If horizontal resizing is allowed, then ensure the horizontal state
+        is in the retract state. If not, animate to the retracted width."""
         if not self.retract_state_x:
             self.toggle_x()
 
     def expand_y(self, *_args):
+        """If vertical resizing is allowed, then ensure the vertical state is in
+        the expand state. If not, animate to the expanded width."""
         if not self._expanded_vertical:
             self.toggle_y()
 
     def retract_y(self, *_args):
+        """If vertical resizing is allowed, then ensure the vertical state is in
+        the retract state. If not, animate to the retracted width."""
         if not self.retract_state_y:
             self.toggle_y()
 
     def instant_expand_x(self, *_args):
+        """If horizontal resizing is allowed, then immediately expand to the
+        expanded width without animating."""
         if not self.allow_resize_x:
             return
 
@@ -752,6 +777,8 @@ class ExpandableMixin(Widget):
         self._expanded_horizontal = True
 
     def instant_retract_x(self, *_args):
+        """If horizontal resizing is allowed, then immediately retract to the
+        retracted width without animating."""
         if not self.allow_resize_x:
             return
 
@@ -768,6 +795,8 @@ class ExpandableMixin(Widget):
         self._expanded_horizontal = False
 
     def instant_expand_y(self, *_args):
+        """If vertical resizing is allowed, then immediately expand to the
+        expanded height without animating."""
         if not self.allow_resize_y:
             return
 
@@ -784,6 +813,8 @@ class ExpandableMixin(Widget):
         self._expanded_vertical = True
 
     def instant_retract_y(self, *_args):
+        """If vertical resizing is allowed, then immediately retract to the
+        retracted height without animating."""
         if not self.allow_resize_y:
             return
 
@@ -800,6 +831,9 @@ class ExpandableMixin(Widget):
         self._expanded_vertical = False
 
     def instant_toggle_x(self, *_args):
+        """If horizontal resizing is allowed, then immediately change the state
+        without animating."""
+
         if not self.allow_resize_x:
             return
 
@@ -809,6 +843,9 @@ class ExpandableMixin(Widget):
             self.instant_expand_x()
 
     def instant_toggle_y(self, *_args):
+        """If vertical resizing is allowed, then immediately change the state
+        without animating."""
+
         if not self.allow_resize_y:
             return
 
@@ -818,9 +855,14 @@ class ExpandableMixin(Widget):
             self.instant_expand_y()
 
     def _update_width(self, *_args):
+        """This method assigns the width/size_hint_x to the value reflected by
+        the current state. But only if the widget has been "initialized" (i.e.,
+        the widget had its constructor called or the kvlang Builder finished
+        parsing all the rules for this instance), if horizontal resizing is
+        allowed, and only if we aren't currently resizing."""
         if not self._initialized:
             return
-
+        print("hi")
         if not self.allow_resize_x:
             return
 
@@ -849,6 +891,11 @@ class ExpandableMixin(Widget):
                 )
 
     def _update_height(self, *_args):
+        """This method assigns the height/size_hint_y to the value reflected by
+        the current state. But only if the widget has been "initialized" (i.e.,
+        the widget had its constructor called or the kvlang Builder finished
+        parsing all the rules for this instance), if vertical resizing is
+        allowed, and only if we aren't currently resizing."""
         if not self._initialized:
             return
 
@@ -880,6 +927,8 @@ class ExpandableMixin(Widget):
                 )
 
     def _update_width_and_height(self, *_args):
+        """A convenience method for calling both _update_width and
+        _update_height, in that order."""
         self._update_width()
         self._update_height()
 
@@ -887,6 +936,18 @@ class ExpandableMixin(Widget):
         """This method determines whether the widget should start expanded or
         retracted. If the user doesn't pick one, then it starts retracted by
         default.
+
+        This method also automatically allows the widget to resize horizontally
+        or vertically if the appropriate attributes were given non-None values
+        (for example, if the widget has a min_x and a max_height assigned, then
+        allow_resize_x will be set to True).
+
+        If the user assigns allow_resize_x/y to True but doesn't assign values
+        to the appropriate attributes, an exception is raised.
+
+        The method will then assign a width/height to the expanded/retracted
+        value, based on whether the user has assigned a value to
+        start_expanded_x/y. If they did not, then the widget starts retracted.
 
         This method is meant to be bound to the "kv_post" event. Note that the
         "kv_post" event is fired after instantiating the class in Python or
@@ -958,16 +1019,26 @@ class ExpandableMixin(Widget):
         self._update_width_and_height()
 
     def _clear_anim_data_horizontal(self, _instance, finished_animating):
+        """This clears internal flags used to perform logic for calculating
+        dynamic animation durations."""
         if finished_animating:
             self._percent_expanded_horizontal = None
             self._prev_duration_horizontal = None
 
     def _clear_anim_data_vertical(self, _instance, finished_animating):
+        """This clears internal flags used to perform logic for calculating
+        dynamic animation durations."""
         if finished_animating:
             self._percent_expanded_vertical = None
             self._prev_duration_vertical = None
 
     def _resolve_parent(self, *_args):
+        """If the parent of this widget is set to None for some ungodly reason,
+        this Widget will crawl through the Widget tree to find the parent.
+
+        This method should never be called. It is introduced as an extremely
+        cautious security measure, but if its use is necessary, then you have
+        something wrong with your app."""
         if self.parent is not None:
             return
 
@@ -1012,7 +1083,7 @@ class ExpandableMixin(Widget):
         prefix = parent.orientation[:2]
         padding_hor = parent.padding[0] + parent.padding[2]
         padding_vert = parent.padding[1] + parent.padding[3]
-        if prefix is "tb" or prefix is "bt":
+        if prefix == "tb" or prefix == "bt":
             cols = {0: []}
             col_of_self = None
             current = 0
@@ -1133,7 +1204,7 @@ class ExpandableMixin(Widget):
         elif cols is None:
             cols = ceil(num_children / rows)
         elif rows * cols != num_children:
-            if prefix is "tb" or prefix is "bt":
+            if prefix == "tb" or prefix == "bt":
                 cols = ceil(num_children / rows)
             else:
                 rows = ceil(num_children / cols)
@@ -1148,7 +1219,7 @@ class ExpandableMixin(Widget):
                 result["row_of_self"] = _row_num
                 result["col_of_self"] = _col_num
 
-        if orientation is "lr-tb":
+        if orientation == "lr-tb":
             row_num = col_num = 0
             for child in reversed(parent.children):
                 add_child(child, row_num, col_num)
@@ -1156,7 +1227,7 @@ class ExpandableMixin(Widget):
                 if col_num == cols:
                     row_num += 1
                     col_num = 0
-        elif orientation is "lr-bt":
+        elif orientation == "lr-bt":
             row_num = rows - 1
             col_num = 0
             for child in reversed(parent.children):
@@ -1165,7 +1236,7 @@ class ExpandableMixin(Widget):
                 if col_num == cols:
                     row_num -= 1
                     col_num = 0
-        elif orientation is "rl-tb":
+        elif orientation == "rl-tb":
             row_num = 0
             col_num = cols - 1
             for child in reversed(parent.children):
@@ -1174,7 +1245,7 @@ class ExpandableMixin(Widget):
                 if col_num < 0:
                     row_num += 1
                     col_num = cols - 1
-        elif orientation is "rl-bt":
+        elif orientation == "rl-bt":
             row_num = rows - 1
             col_num = cols - 1
             for child in reversed(parent.children):
@@ -1183,7 +1254,7 @@ class ExpandableMixin(Widget):
                 if col_num < 0:
                     row_num -= 1
                     col_num = cols - 1
-        elif orientation is "tb-lr":
+        elif orientation == "tb-lr":
             row_num = col_num = 0
             for child in reversed(parent.children):
                 add_child(child, row_num, col_num)
@@ -1191,7 +1262,7 @@ class ExpandableMixin(Widget):
                 if row_num == rows:
                     row_num = 0
                     col_num += 1
-        elif orientation is "tb-rl":
+        elif orientation == "tb-rl":
             row_num = 0
             col_num = cols - 1
             for child in reversed(parent.children):
@@ -1200,7 +1271,7 @@ class ExpandableMixin(Widget):
                 if row_num == rows:
                     row_num = 0
                     col_num -= 1
-        elif orientation is "bt-lr":
+        elif orientation == "bt-lr":
             row_num = rows - 1
             col_num = 0
             for child in reversed(parent.children):
@@ -1209,7 +1280,7 @@ class ExpandableMixin(Widget):
                 if row_num < 0:
                     row_num = rows - 1
                     col_num += 1
-        elif orientation is "bt-rl":
+        elif orientation == "bt-rl":
             row_num = rows - 1
             col_num = cols - 1
             for child in reversed(parent.children):
@@ -1297,7 +1368,7 @@ class ExpandableMixin(Widget):
         if isinstance(parent, BoxLayout):
             """Please see corresponding docstring in _resolve_size_hint_y."""
             num_siblings = len(parent.children) - 1
-            if parent.orientation is "vertical":
+            if parent.orientation == "vertical":
                 allotted_width = parent.width - padding_hor
                 self.size_hint_x = self.width / allotted_width
             else:
@@ -1350,6 +1421,9 @@ class ExpandableMixin(Widget):
         return DO_DEFAULT_ANIM
 
     def _get_expand_anim_hor_duration(self, *_args):
+        """Returns the full duration for horizontally expanding. This does not
+        account for the eventual logic that may be performed to reduce the
+        actual animation time."""
         if self.duration_expand_x:
             return self.duration_expand_x
         elif self.duration_resize_x:
@@ -1358,6 +1432,9 @@ class ExpandableMixin(Widget):
             return self.duration_resize
 
     def _get_retract_anim_hor_duration(self, *_args):
+        """Returns the full duration for horizontally retracting. This does not
+        account for the eventual logic that may be performed to reduce the
+        actual animation time."""
         if self.duration_retract_x:
             return self.duration_retract_x
         elif self.duration_resize_x:
@@ -1366,6 +1443,23 @@ class ExpandableMixin(Widget):
             return self.duration_resize
 
     def _get_horizontal_animation_duration(self):
+        """Calculates the actual horizontal animation duration, based on whether
+        we should be expanding or retracting.
+
+        To see the reason this method exists, imagine the user assigns a large
+        value for duration_resize (say, 5 seconds). Then, the expandable widget
+        calls its toggle_x. It slowly expands/retracts; then suppose, after 1
+        second, the widget calls toggle_x again. Well, is has only traveled 1/5
+        of the distance it needs to reach the new width, and yet the second
+        animation will cover this small distance in 5 seconds, which may feel
+        terrible for the user.
+
+        The logic performed here will cause the actual animation time from the
+        previous example to only take 1 second.
+
+        If, for whatever reason, the example behavior is actually preferable,
+        then assigning fixed_duration_x to True will cause it happen.
+        """
         was_expanding = will_retract = self._expanded_horizontal
         if will_retract:
             duration = self._get_retract_anim_hor_duration()
@@ -1408,6 +1502,8 @@ class ExpandableMixin(Widget):
         return duration
 
     def _get_horizontal_animation_transition(self):
+        """Returns the animation transition for based on whether we will
+        horizontally expand or retract."""
         will_expand = not self._expanded_horizontal
         if will_expand:
             if self.transition_expand_x:
@@ -1425,6 +1521,14 @@ class ExpandableMixin(Widget):
                 return self.transition_resize
 
     def _animate_width_hint_special_case(self, x_hint, transition, duration):
+        """There are some cases where resolving the size_hint_x would cause the
+        widget to "snap" into place, making a smooth animation simply
+        impossible. This method is called whenever one of these edge cases occur
+        to perform a smooth animation before assigning a size_hint to the
+        widget.
+
+        The only known edge cases where this can happen occur in BoxLayouts or
+        GridLayouts."""
         if not self.allow_resize_x:
             return
 
@@ -1442,8 +1546,8 @@ class ExpandableMixin(Widget):
         parent = self.parent
 
         if isinstance(parent, BoxLayout):
-            Animation.cancel_all(self, "width")
-            Animation.cancel_all(self, "size_hint_x")
+            """Please see corresponding docstring in 
+            _animate_height_hint_special_case."""
             self.size_hint_x = None
 
             sum_widths = 0.
@@ -1461,6 +1565,8 @@ class ExpandableMixin(Widget):
             self.start_resize_animation(anim, HORIZONTAL)
 
         if isinstance(parent, GridLayout):
+            """Please see corresponding docstring in 
+            _animate_height_hint_special_case."""
             result = self._handle_child_of_grid_layout()
 
             col_of_self = result["col_of_self"]
@@ -1591,6 +1697,11 @@ class ExpandableMixin(Widget):
             anim1.start(parent)
 
     def _animate_width_hint(self, x_hint, *_args):
+        """If we are allowed to resize horizontally, and if the x_hint is one
+        of the values min_x_hint or max_x_hint, then we perform the needed
+        animation to animate to that value of x_hint. This will call
+        self._resolve_size_hint_x if the current size_hint_x is None and
+        possibly call self._animate_width_hint_special_case if necessary."""
         if not self.allow_resize_x:
             return
 
@@ -1717,7 +1828,7 @@ class ExpandableMixin(Widget):
                 is that widget's size_hint_y over the sum of every non-None 
                 size_hint_y."""
             num_siblings = len(parent.children) - 1
-            if parent.orientation is "horizontal":
+            if parent.orientation == "horizontal":
                 allotted_height = parent.height - padding_vert
                 self.size_hint_y = self.height / allotted_height
             else:
@@ -1853,6 +1964,9 @@ class ExpandableMixin(Widget):
         return DO_DEFAULT_ANIM
 
     def _get_expand_anim_vert_duration(self, *_args):
+        """Returns the full duration for vertically expanding. This does not
+        account for the eventual logic that may be performed to reduce the
+        actual animation time."""
         if self.duration_expand_y:
             return self.duration_expand_y
         elif self.duration_resize_y:
@@ -1861,6 +1975,9 @@ class ExpandableMixin(Widget):
             return self.duration_resize
 
     def _get_retract_anim_vert_duration(self, *_args):
+        """Returns the full duration for vertically retracting. This does not
+        account for the eventual logic that may be performed to reduce the
+        actual animation time."""
         if self.duration_retract_y:
             return self.duration_retract_y
         elif self.duration_resize_y:
@@ -1869,6 +1986,8 @@ class ExpandableMixin(Widget):
             return self.duration_resize
 
     def _get_vertical_animation_duration(self):
+        """See the comment in _get_horizontal_animation_duration. The behavior
+        of this method is entirely analogous."""
         was_expanding = will_retract = self._expanded_vertical
         if will_retract:
             duration = self._get_retract_anim_vert_duration()
@@ -1911,6 +2030,8 @@ class ExpandableMixin(Widget):
         return duration
 
     def _get_vertical_animation_transition(self):
+        """Returns the animation transition for based on whether we will
+        vertically expand or retract."""
         will_expand = not self._expanded_vertical
         if will_expand:
             if self.transition_expand_y:
@@ -1928,29 +2049,14 @@ class ExpandableMixin(Widget):
                 return self.transition_resize
 
     def _animate_height_hint_special_case(self, y_hint, transition, duration):
-        """
-        Notice that we have an issue for a child of a GridLayout if we
-        animate from a min_x to a max_x_hint (or a max_x to a
-        min_x_hint). As soon as we add a size_hint, the widget will
-        instantaneously fill its slot, ruining what is supposed to be a
-        smooth animation. Therefore, if we are animating a GridLayout that
-        is "switching" from a None size_hint_y to a non-None size_hint_y,
-        we have to cheat.
+        """There are some cases where resolving the size_hint_y would cause the
+        widget to "snap" into place, making a smooth animation simply
+        impossible. This method is called whenever one of these edge cases occur
+        to perform a smooth animation before assigning a size_hint to the
+        widget.
 
-        Save the current rows_minimum of the GridLayout to some temporary
-        variable and then make a new rows_minimum that maps each row to its
-        current slot height. Then set force_row_default to True.
-
-        Calculate what the new height of each row will be after we set the
-        widget size_hint_y. Make a second rows_minimum dict and animate to it.
-        Note that GridLayouts don't, by default, bind their layout logic to the
-        rows_minimum property (this is likely a bug that should be fixed, make
-        an MR to the kivy source code), so bind rows_minimum to the private
-        method _trigger_layout.
-
-        Once this animation is complete, set the size_hint_y to
-        min/max_y_hint. Also unbind _trigger_layout.
-        """
+        The only known edge cases where this can happen occur in BoxLayouts or
+        GridLayouts."""
         if not self.allow_resize_y:
             return
 
@@ -1965,19 +2071,27 @@ class ExpandableMixin(Widget):
             if result is not None:
                 return
 
-        if isinstance(self.parent, BoxLayout):
-            Animation.cancel_all(self, "height")
+        parent = self.parent
+
+        if isinstance(parent, BoxLayout):
+            """If orientation is vertical, then the allotted height is divided 
+            between all widgets with non-None size_hint_y's. But if we are the 
+            only child, then we get all of the allotted height no matter the 
+            value of our size_hint_y. Hence, assigning a value to size_hint_y 
+            causes widget to "snap" into a particular height, ruining a smooth 
+            animation. Hence, we cheat by simply animating the height to the 
+            allotted height."""
             self.size_hint_y = None
 
             sum_heights = 0.
-            for child in self.parent.children:
+            for child in parent.children:
                 if child.size_hint_y is None and child is not self:
                     sum_heights += child.height
 
-            padding_vert = self.parent.padding[1] + self.parent.padding[3]
-            spacing_vert = self.parent.spacing * (len(self.parent.children) - 1)
+            padding_vert = parent.padding[1] + parent.padding[3]
+            spacing_vert = parent.spacing * (len(parent.children) - 1)
             padding_and_spacing = padding_vert + spacing_vert
-            height = self.parent.height - padding_and_spacing - sum_heights
+            height = parent.height - padding_and_spacing - sum_heights
             height = max(0, height)
 
             duration = self._get_vertical_animation_duration()
@@ -1985,7 +2099,166 @@ class ExpandableMixin(Widget):
             anim = Animation(height=height, t=transition, d=duration)
             self.start_resize_animation(anim, VERTICAL)
 
+        if isinstance(parent, GridLayout):
+            """
+            Notice that we have an issue for a child of a GridLayout if we
+            animate from a min_x to a max_x_hint (or a max_x to a
+            min_x_hint). As soon as we add a size_hint, the widget will
+            instantaneously fill its slot, ruining what is supposed to be a
+            smooth animation. Therefore, if we are animating a GridLayout that
+            is "switching" from a None size_hint_y to a non-None size_hint_y,
+            we have to cheat.
+
+            Save the current rows_minimum of the GridLayout to some temporary
+            variable and then make a new rows_minimum that maps each row to its
+            current slot height. Then set force_row_default to True.
+
+            Calculate what the new height of each row will be after we set the
+            widget size_hint_y. Make a second rows_minimum dict and animate to 
+            it. Note that GridLayouts don't, by default, bind their layout logic 
+            to the rows_minimum property (this is likely a bug that should be 
+            fixed, make an MR to the kivy source code), so bind rows_minimum to 
+            the private method _trigger_layout.
+
+            Once this animation is complete, set the size_hint_y to
+            min/max_y_hint. Also unbind _trigger_layout.
+            """
+
+            result = self._handle_child_of_grid_layout()
+
+            row_of_self = result["row_of_self"]
+
+            if parent.row_force_default:
+                if row_of_self in parent.rows_minimum:
+                    full_height = parent.rows_minimum[row_of_self]
+                else:
+                    full_height = parent.row_default_width
+
+                anim = Animation(width=full_height, t=transition, d=duration)
+                self.start_resize_animation(anim, VERTICAL)
+                return
+
+            # we will override this attribute, but we will need to set it back
+            # to this value after we're done
+            temp = parent.rows_minimum
+
+            # calculate the width of the slot for each row. This requires
+            # calculating the minimum width for each row AND the fraction of
+            # allotted width provided to each row
+
+            # mins[n] is the minimum height of row n
+            mins = {}
+            # max_size_hints[n] is the largest size_hint_y found in row n
+            max_size_hints = {}
+
+            row_default_width = parent.row_default_width
+
+            rows = result["rows"]
+            num_rows = len(rows.keys())
+
+            # loop through every child in row. Determine the minimum height of
+            # the row, as well as the largest size_hint_y in that row.
+            for row_num in rows.keys():
+
+                minimum_from_dict = None
+                if row_num in parent.rows_minimum:
+                    minimum_from_dict = parent.rows_minimum[row_num]
+
+                minimum_from_children = None
+                max_size_hint = None
+                for child in rows[row_num]:
+                    if child.size_hint_y is None:
+                        # find a value for minimum_from_children
+                        if minimum_from_children is None:
+                            minimum_from_children = child.height
+                        else:
+                            minimum_from_children = max(
+                                minimum_from_children,
+                                child.height
+                            )
+                    else:
+                        # find the largest size_hint_y in the row
+                        if max_size_hint is None:
+                            max_size_hint = child.size_hint_y
+                        else:
+                            max_size_hint = max(
+                                max_size_hint,
+                                child.size_hint_y
+                            )
+
+                min_height = row_default_width
+
+                if minimum_from_dict is not None:
+                    min_height = max(min_height, minimum_from_dict)
+
+                if minimum_from_children is not None:
+                    min_height = max(min_height, minimum_from_children)
+
+                # the minimum width for col_num is...
+                mins[row_num] = min_height
+                # the maximum size_hint for col_num is...
+                if max_size_hint is not None:
+                    max_size_hints[row_num] = max_size_hint
+
+            spacing = (num_rows - 1) * parent.spacing[1]
+            padding = parent.padding[1] + parent.padding[3]
+            allotted_height = parent.height - spacing - padding
+            allotted_height -= sum(mins.values())
+
+            # create a rows_minimum dictionary that represents the height of
+            # each row currently. Then make another one that represents the
+            # height of each row after expandable widget gets a new size hint
+            heights_before = {}
+            heights_after = {}
+            dicts = [heights_before, heights_after]
+            for dictionary in dicts:
+                sum_size_hint = sum(max_size_hints.values())
+                for row in rows.keys():
+                    height = mins[row]
+
+                    if sum_size_hint > 0:
+                        ratio = max_size_hints[row] / sum_size_hint
+                        height += ratio * allotted_height
+
+                    dictionary[row] = height
+                max_size_hints[row_of_self] = y_hint
+
+            # set row_force_default to True
+            parent.row_force_default = True
+            parent.rows_minimum = heights_before
+
+            # bind parent.rows_minimum to parent._trigger_layout
+            parent.bind(rows_minimum=parent._trigger_layout)  # noqa
+
+            # create animations
+            anim1 = Animation(
+                rows_minimum=heights_after,
+                t=transition,
+                d=duration
+            )
+            anim2 = Animation(
+                height=heights_after[row_of_self],
+                t=transition,
+                d=duration
+            )
+
+            # unbind parent._trigger_layout, set parent.cols_minimum back to its
+            # original value
+            def on_complete(*_args):
+                parent.unbind(rows_minimum=parent._trigger_layout)  # noqa
+                parent.rows_minimum = temp
+            anim1.bind(on_complete=on_complete)
+
+            # animate self and cols_minimum to new value
+            self.start_resize_animation(anim2, HORIZONTAL)
+            anim1.start(parent)
+
     def _animate_height_hint(self, y_hint, *_args):
+        """If we are allowed to resize vertically, and if the y_hint is one of
+        the values min_y_hint or max_y_hint, then we perform the needed
+        animation to animate to that value of y_hint. This will call
+        self._resolve_size_hint_xy if the current size_hint_y is None and
+        possibly call self._animate_height_hint_special_case if necessary."""
         if not self.allow_resize_y:
             return
 
@@ -2018,6 +2291,8 @@ class ExpandableMixin(Widget):
             ), VERTICAL)
 
     def _animate_width(self, new_width, *_args):
+        """If we are allowed to resize horizontally and the given parameter is
+        one of the values min_x or max_x, then animate to that width."""
         if not self.allow_resize_x:
             return
 
@@ -2041,6 +2316,8 @@ class ExpandableMixin(Widget):
         ), HORIZONTAL)
 
     def _animate_height(self, new_height, *_args):
+        """If we are allowed to resize vertically and the given parameter is one
+        of the values min_y or max_y, then animate to that height."""
         if not self.allow_resize_y:
             return
 
