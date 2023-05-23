@@ -3,6 +3,7 @@ from math import ceil
 
 from kivy import Logger
 from kivy.animation import Animation
+from kivy.animation import AnimationTransition
 from kivy.core.window import Window
 from kivy.core.window import WindowBase
 from kivy.properties import AliasProperty
@@ -25,44 +26,13 @@ DO_DEFAULT_ANIM = False
 HORIZONTAL = True
 VERTICAL = False
 
-
-class AnimTransitions:
-    IN_BACK = "in_back"
-    IN_BOUNCE = "in_bounce"
-    IN_CIRC = "in_circ"
-    IN_CUBIC = "in_cubic"
-    IN_ELASTIC = "in_elastic"
-    IN_EXPO = "in_expo"
-    IN_OUT_BACK = "in_out_back"
-    IN_OUT_BOUNCE = "in_out_bounce"
-    IN_OUT_CIRC = "in_out_circ"
-    IN_OUT_CUBIC = "in_out_cubic"
-    IN_OUT_ELASTIC = "in_out_elastic"
-    IN_OUT_EXPO = "in_out_expo"
-    IN_OUT_QUAD = "in_out_quad"
-    IN_OUT_QUART = "in_out_quart"
-    IN_OUT_QUINT = "in_out_quint"
-    IN_OUT_SINE = "in_out_sine"
-    IN_QUAD = "in_quad"
-    IN_QUART = "in_quart"
-    IN_QUINT = "in_quint"
-    IN_SINE = "in_sine"
-    LINEAR = "linear"
-    OUT_BACK = "out_back"
-    OUT_BOUNCE = "out_bounce"
-    OUT_CIRC = "out_circ"
-    OUT_CUBIC = "out_cubic"
-    OUT_ELASTIC = "out_elastic"
-    OUT_EXPO = "out_expo"
-    OUT_QUAD = "out_quad"
-    OUT_QUART = "out_quart"
-    OUT_QUINT = "out_quint"
-    OUT_SINE = "out_sine"
-
-
 anim_transitions = [
+    key
+    for key in vars(AnimationTransition).keys()
+    if not key.startswith("__")
+] + [
     value
-    for key, value in vars(AnimTransitions).items()
+    for key, value in vars(AnimationTransition).items()
     if not key.startswith("__")
 ]
 
@@ -72,123 +42,373 @@ class ExpandableMixinError(Exception):
 
 
 class ExpandableMixin(Widget):
+    """A robust mixin for creating widgets that can be in an "expanded" or
+    "retracted" state, horizontally and vertically.
+    """
+
     allow_resize_x = BooleanProperty(False)
+    """If True, then the widget can resize horizontally. This value is 
+    automatically set to True on initialization if the widget has a non-None
+    min_x/min_x_hint and a max_x/max_x_hint.
+    
+    The user can dynamically set this value to False if they want to 
+    conditionally "lock" the widget from any horizontal resizing behavior."""
+
     allow_resize_y = BooleanProperty(False)
+    """If True, then the widget can resize vertically. This value is 
+    automatically set to True on initialization if the widget has a non-None
+    min_y/min_y_hint and a none-None max_y/max_y_hint.
+
+    The user can dynamically set this value to False if they want to 
+    conditionally "lock" the widget from any vertical resizing behavior."""
+
     start_expanded_x = BooleanProperty(None)
+    """When True, the widget's expand_state_x is True when after initialization.
+    
+    This value is set to False during initialization if the user does not assign 
+    a value. Hence, by default, widgets start horizontally retracted."""
+
     start_expanded_y = BooleanProperty(None)
+    """When True, the widget's expand_state_y is True when after initialization.
+
+    This value is set to False during initialization if the user does not assign 
+    a value. Hence, by default, widgets start vertically retracted."""
 
     min_x_hint = BoundedNumericProperty(None, min=0, allownone=True)
+    """The value of size_hint_x the widget will have when horizontally 
+    retracted. The value cannot be negative and can be changed to None, although 
+    this will raise an exception if there is no value for min_x.
+    
+    If the widget has a value for both min_x and min_x_hint, then the value for 
+    min_x_hint is ALWAYS prioritized."""
+
     max_x_hint = BoundedNumericProperty(None, min=0, allownone=True)
+    """The value of size_hint_x the widget will have when horizontally 
+    expanded. The value cannot be negative and can be changed to None, although 
+    this will raise an exception if there is no value for max_x.
+    
+    If the widget has a value for both max_x and max_x_hint, then the value for 
+    max_x_hint is ALWAYS prioritized."""
+
     min_y_hint = BoundedNumericProperty(None, min=0, allownone=True)
+    """The value of size_hint_y the widget will have when vertically 
+    retracted. The value cannot be negative and can be changed to None, although 
+    this will raise an exception if there is no value for min_y.
+    
+    If the widget has a value for both min_y and min_y_hint, then the value for 
+    min_y_hint is ALWAYS prioritized."""
+
     max_y_hint = BoundedNumericProperty(None, min=0, allownone=True)
+    """The value of size_hint_x the widget will have when vertically 
+    expanded. The value cannot be negative and can be changed to None, although 
+    this will raise an exception if there is no value for max_y.
+    
+    If the widget has a value for both max_y and max_y_hint, then the value for 
+    max_y_hint is ALWAYS prioritized."""
+
     min_x = NumericProperty(None)
+    """The width the widget will have when horizontally retracted. It can never 
+    be assigned a value of None.
+    
+    If the widget has a value for both min_x and min_x_hint, then the value for 
+    min_x_hint is ALWAYS prioritized."""
+
     max_x = NumericProperty(None)
+    """The width the widget will have when horizontally expanded. It can never 
+    be assigned a value of None.
+    
+    If the widget has a value for both max_x and max_x_hint, then the value for 
+    max_x_hint is ALWAYS prioritized."""
+
     min_y = NumericProperty(None)
+    """The height the widget will have when vertically retracted. It can never 
+    be assigned a value of None.
+    
+    If the widget has a value for both min_y and min_y_hint, then the value for 
+    min_y_hint is ALWAYS prioritized."""
+
     max_y = NumericProperty(None)
+    """The height the widget will have when vertically expanded. It can never 
+    be assigned a value of None.
+    
+    If the widget has a value for both max_y and max_y_hint, then the value for 
+    max_y_hint is ALWAYS prioritized."""
 
     duration_resize = NumericProperty(0.25)
+    """The duration of the resize animation in units of seconds. That is, 
+    whenever you expand or retract the widget horizontally or vertically without 
+    using instant_toggle_x or any similar method, the length of the animation 
+    depicting the state change is determined by this value. The default duration 
+    is 0.25 seconds. 
+    
+    This value can be overriden by any duration attribute which has higher 
+    specificity. For example, if duration_resize_x is assigned a value, then 
+    expanding or retracting the widget horizontally will have an animation 
+    duration of the value of duration_resize_x"""
+
     duration_resize_x = NumericProperty(None, allownone=True)
+    """The duration of the horizontal resize animation, in units of seconds. By 
+    default, this value is None and it can be set to None during the widget's 
+    lifetime.
+    
+    This value will override the value of duration_resize if it is not None. 
+    This value is overriden by duration_expand_x or duration_retract_x if either 
+    of those attributes are not None."""
+
     duration_resize_y = NumericProperty(None, allownone=True)
+    """The duration of the vertical resize animation, in units of seconds. By 
+    default, this value is None and it can be set to None during the widget's 
+    lifetime.
+
+    This value will override the value of duration_resize if it is not None.  
+    This value is overriden by duration_expand_y or duration_retract_y if either 
+    of those attributes are not None."""
+
     duration_expand_x = NumericProperty(None, allownone=True)
+    """The duration of the horizontal expand animation, in units of seconds. By 
+    default, this value is None and it can be set to None during the widget's 
+    lifetime.
+    
+    This value will override the values of duration_resize and duration_resize_x 
+    if its value is not None."""
+
     duration_expand_y = NumericProperty(None, allownone=True)
+    """The duration of the vertical expand animation, in units of seconds. By 
+    default, this value is None and it can be set to None during the widget's 
+    lifetime.
+
+    This value will override the values of duration_resize and duration_resize_y 
+    if its value is not None."""
+
     duration_retract_x = NumericProperty(None, allownone=True)
+    """The duration of the horizontal retract animation, in units of seconds. By 
+    default, this value is None and it can be set to None during the widget's 
+    lifetime.
+
+    This value will override the values of duration_resize and duration_resize_x 
+    if its value is not None."""
+
     duration_retract_y = NumericProperty(None, allownone=True)
+    """The duration of the vertical retract animation, in units of seconds. By 
+    default, this value is None and it can be set to None during the widget's 
+    lifetime.
+
+    This value will override the values of duration_resize and duration_resize_y 
+    if its value is not None."""
 
     fixed_duration_x = BooleanProperty(False)
+    """The animation duration is actually dynamic. If duration_resize is 5 and 
+    the toggle_x method is called, and then toggle_x is called once again after 
+    exactly one second, then by default, the animation will now take 4 seconds. 
+    If you want the animation to always take the full 5 seconds, then set this 
+    property to True."""
+
     fixed_duration_y = BooleanProperty(False)
+    """The animation duration is actually dynamic. If duration_resize is 5 and 
+    the toggle_y method is called, and then toggle_x is called once again after 
+    exactly one second, then by default, the animation will now take 4 seconds. 
+    If you want the animation to always take the full 5 seconds, then set this 
+    property to True."""
 
     transition_resize = OptionProperty(
-        AnimTransitions.LINEAR,
+        AnimationTransition.linear,
         options=anim_transitions
     )
+    """This will determine the transition property applied to the Animation 
+    object used to animate any state change of this widget. It must be a string 
+    or one of the properties from the AnimationTransition class in the 
+    kivy.animation module.
+    
+    This value can be overridden by any transition attribute of higher 
+    specificity."""
 
     transition_resize_x = OptionProperty(
         None,
         options=anim_transitions,
         allownone=True
     )
+    """This will determine the transition property applied to the Animation 
+    object used to animate any horizontal state changes of this widget. It must 
+    be a string or one of the properties from the AnimationTransition class in 
+    the kivy.animation module.
+
+    This value will override transition_resize if its value is not None. This 
+    value can be overridden by transition_expand_x or transition_retract_x 
+    if either is not None."""
 
     transition_resize_y = OptionProperty(
         None,
         options=anim_transitions,
         allownone=True
     )
+    """This will determine the transition property applied to the Animation 
+    object used to animate any vertical state changes of this widget. It must be 
+    a string or one of the properties from the AnimationTransition class in the 
+    kivy.animation module.
+
+    This value will override transition_resize if its value is not None. This 
+    value can be overridden by transition_expand_y or transition_retract_y 
+    if either is not None."""
 
     transition_expand_x = OptionProperty(
         None,
         options=anim_transitions,
         allownone=True
     )
+    """This will determine the transition property applied to the Animation 
+    object used to animate any horizontal expansion for this widget. It must be 
+    a string or one of the properties from the AnimationTransition class in the 
+    kivy.animation module.
+
+    This value will override any value assigned to transition_resize or 
+    transition_resize_x."""
 
     transition_expand_y = OptionProperty(
         None,
         options=anim_transitions,
         allownone=True
     )
+    """This will determine the transition property applied to the Animation 
+    object used to animate any vertical expansion for this widget. It must be a 
+    string or one of the properties from the AnimationTransition class in the 
+    kivy.animation module.
+
+    This value will override any value assigned to transition_resize or 
+    transition_resize_y."""
 
     transition_retract_x = OptionProperty(
         None,
         options=anim_transitions,
         allownone=True
     )
+    """This will determine the transition property applied to the Animation 
+    object used to animate any horizontal retraction for this widget. It must be 
+    a string or one of the properties from the AnimationTransition class in the 
+    kivy.animation module.
+
+    This value will override any value assigned to transition_resize or 
+    transition_resize_x."""
 
     transition_retract_y = OptionProperty(
         None,
         options=anim_transitions,
         allownone=True
     )
+    """This will determine the transition property applied to the Animation 
+    object used to animate any vertical retraction for this widget. It must be a 
+    string or one of the properties from the AnimationTransition class in the 
+    kivy.animation module.
+
+    This value will override any value assigned to transition_resize or 
+    transition_resize_y."""
 
     _resize_animation = ObjectProperty(None, allownone=True)
+    """Private variable used for determining whether this widget is currently 
+    animating something. Stores the Animation object which is performing the 
+    current animation, or is None if there is no animation."""
 
     _timestamp_horizontal = NumericProperty(None, allownone=True)
-    """Used for determining how much an animation has progressed."""
+    """Used for determining how much any horizontal animation has progressed."""
 
     _timestamp_vertical = NumericProperty(None, allownone=True)
-    """Used for determining how much an animation has progressed."""
+    """Used for determining how much any vertical animation has progressed."""
 
     _prev_duration_horizontal = NumericProperty(None, allownone=True)
+    """Used for the internal algorithm which dynamically assigns animation 
+    duration times. This value represents the duration of the previous 
+    horizontal animation if it were allowed to execute in full. It is None if no 
+    animation was interrupted."""
+
     _prev_duration_vertical = NumericProperty(None, allownone=True)
+    """Used for the internal algorithm which dynamically assigns animation 
+    duration times. This value represents the duration of the previous vertical 
+    animation if it were allowed to execute in full. It is None if no vertical 
+    animation was interrupted."""
+
     _percent_expanded_horizontal = NumericProperty(None, allownone=True)
+    """Used for the internal algorithm which dynamically assigns animation 
+    duration times. Is a value between 0 and 1, where 0 means the widget is 
+    retracted and 1 mean the widget is expanded (horizontally). 
+    
+    This value is not continuously updated. It is determined every time the 
+    widget calculates the dynamic animation duration and is set to None once 
+    all animations are complete."""
+
     _percent_expanded_vertical = NumericProperty(None, allownone=True)
+    """Used for the internal algorithm which dynamically assigns animation 
+    duration times. Is a value between 0 and 1, where 0 means the widget is 
+    retracted and 1 mean the widget is expanded (vertically). 
+    
+    This value is not continuously updated. It is determined every time the 
+    widget calculates the dynamic animation duration and is set to None once 
+    all animations are complete."""
 
     _expanded_horizontal = BooleanProperty()
+    """Used internally. Is True if the widget is expanding or expanded 
+    (horizontally). Please  never make assignments to this attribute at 
+    runtime."""
+
     _expanded_vertical = BooleanProperty()
+    """Used internally. Is True if the widget is expanding or expanded 
+    (vertically). Please never make assignments to this attribute at runtime."""
+
     _initialized = BooleanProperty(False)
+    """Used internally. An internal callback sets this value to True, after the 
+    widget constructor is called in Python, or after all of the rules in kvlang 
+    are parsed for this instance."""
 
     def _get_resizing(self, *_args):
+        """Return True if the widget is currently animating."""
         return self._resize_animation is not None
 
     resizing = AliasProperty(_get_resizing, bind=["_resize_animation"])
+    """Is True if the widget is currently animating a horizontal/vertical 
+    expansion/retraction. This property is read-only."""
 
     def _get_expand_state_hor(self, *_args):
+        """Returns True if the widget is expanded or expanding horizontally."""
         return self._expanded_horizontal
 
     expand_state_x = AliasProperty(_get_expand_state_hor, bind=[
         "_expanded_horizontal"
     ])
+    """Is True if the widget is expanded or expanding horizontally. This 
+    property is read-only."""
 
     def _get_expand_state_vert(self, *_args):
+        """Return True if the widget is expanded or expanding vertically."""
         return self._expanded_vertical
 
     expand_state_y = AliasProperty(_get_expand_state_vert, bind=[
         "_expanded_vertical"
     ])
+    """Is True if the widget is expanded or expanding vertically. This property 
+    is read-only."""
 
     def _get_retract_state_hor(self, *_args):
+        """Returns True if the widget is retracted or retracting
+        horizontally."""
         return not self._expanded_horizontal
 
     retract_state_x = AliasProperty(_get_retract_state_hor, bind=[
         "expand_state_x"
     ])
+    """Is True if the widget is retracted or retracting horizontally. This 
+    property is read-only."""
 
     def _get_retract_state_vert(self, *_args):
+        """Returns True if the widget is retracted or retracting vertically.
+        This property is read-only."""
         return not self._expanded_vertical
 
     retract_state_y = AliasProperty(_get_retract_state_vert, bind=[
         "expand_state_y"
     ])
+    """Returns True if the widget is retracted or retracted vertically. This 
+    property is read-only."""
 
     def _get_fully_expanded_hor(self, *_args):
+        """Returns True if this widget is horizontally expanded."""
         if self.max_x_hint is not None:
             return self.size_hint_x == self.max_x_hint
         else:
@@ -201,8 +421,11 @@ class ExpandableMixin(Widget):
         "max_y",
         "expand_state_x"
     ])
+    """Is True if this widget is horizontally expanded. This property is 
+    read-only."""
 
     def _get_fully_retracted_hor(self, *_args):
+        """Returns True if this widget is horizontally retracted."""
         if self.min_x_hint is not None:
             return self.size_hint_x == self.min_x_hint
         else:
@@ -215,8 +438,11 @@ class ExpandableMixin(Widget):
         "min_x",
         "expand_state_x"
     ])
+    """Is True if this widget is horizontally retracted. This property is 
+    read-only."""
 
     def _get_fully_expanded_vert(self, *_args):
+        """Returns True if this widget is vertically expanded."""
         if self.max_y_hint is not None:
             return self.size_hint_y == self.max_y_hint
         else:
@@ -229,8 +455,11 @@ class ExpandableMixin(Widget):
         "max_y",
         "expand_state_y"
     ])
+    """Is True if this widget is vertically expanded. This property is 
+    read-only."""
 
     def _get_fully_retracted_vert(self, *_args):
+        """Returns True if this widget is vertically retracted."""
         if self.min_y_hint is not None:
             return self.size_hint_y == self.min_y_hint
         else:
@@ -243,41 +472,109 @@ class ExpandableMixin(Widget):
         "min_y",
         "expand_state_y"
     ])
+    """Is True if this widget is vertically retracted."""
 
     def _get_expanding_horizontal(self, *_args):
+        """Returns True if this widget is horizontally expanding."""
         return self.expand_state_x and self.resizing
 
     expanding_x = AliasProperty(_get_expanding_horizontal, bind=[
         "expand_state_x",
         "resizing"
     ])
+    """Is True if this widget is horizontally expanding. This property is 
+    read-only."""
 
     def _get_expanding_vertical(self, *_args):
+        """Returns True if this widget is vertically expanding."""
         return self.expand_state_y and self.resizing
 
     expanding_y = AliasProperty(_get_expanding_vertical, bind=[
         "expand_state_y",
         "resizing"
     ])
+    """Is True if this widget is vertically expanding."""
 
     def _get_retracting_horizontal(self, *_args):
+        """Returns True if this widget is horizontally retracting."""
         return self.retract_state_x and self.resizing
 
     retracting_x = AliasProperty(_get_retracting_horizontal, bind=[
         "retract_state_x",
         "resizing"
     ])
+    """Is True if this widget is horizontally retracting. This property is 
+    read-only."""
 
     def _get_retracting_vertical(self, *_args):
+        """Returns True if this widget is vertically retracting."""
         return self.retract_state_y and self.resizing
 
     retracting_y = AliasProperty(_get_retracting_vertical, bind=[
         "retract_state_y",
         "resizing"
     ])
+    """Is True if this widget is vertically retracting."""
 
     custom_size_hint_resolver = ObjectProperty(None)
+    """For advanced users.
+    
+    If you "mix" hinted and not hinted bounds for this widget (i.e., you assign 
+    a min_x and a max_x_hint), the widget will animate in the expected manner. 
+    However, when the widget is at min_x, it is assigned a specific width and 
+    therefore must have a size_hint_x of None. Thus, to animate to max_x_hint, 
+    we must resolve for size_hint_x. That is, we must find the size_hint_x which 
+    brings the widget the width of min_x.
+    
+    This process is non-trivial if handled appropriately for every edge case 
+    for every kivy Widget which listens to size_hint. However, it is possible 
+    that an advanced user has their own custom widgets which listen to the size 
+    hints of their children. In that case, the user can provide their own custom 
+    resolver by assigning a callback to this attribute. The callback must take a 
+    single argument, which is the string "x" or "y". This should represent 
+    whether you are resolving size_hint_x or size_hint_y.
+    
+    The custom callback is ALWAYS called before any logic is performed in this 
+    widget's default size hint resolver. In your custom resolver, you must 
+    manually check for whether the widget is a child of a custom widget 
+    yourself.
+    
+    If the custom callback returns any value, then the default logic performed 
+    in this widget's size hint resolver is ignored.
+    
+    If your custom widget cannot smoothly animate from a specific width/height 
+    to a width/height determined by size hint, then you can "cheat" by also 
+    assigning a custom animation to the custom_size_hint_animation attribute.
+    This custom_size_hint_animation method will be called if 
+    custom_size_hint_resolver returns True."""
+
     custom_size_hint_animation = ObjectProperty(None)
+    """For advanced users. See the discussion in the documentation for the 
+    custom_size_hint_resolver attribute.
+    
+    If your custom widget cannot smoothly animate from a specific width/height 
+    to a width/height determined by size hint, then you can "cheat" by also 
+    assigning a custom animation to the custom_size_hint_animation attribute.
+    This custom_size_hint_animation method will be called if 
+    custom_size_hint_resolver (or if the default internal size hint resolver) 
+    returns True.
+    
+    This callback will be performed before any internal animation logic is 
+    performed. If this callback returns any non-None value, then the default 
+    animation logic will be ignored.
+    
+    The callback takes four positional parameters:
+        x_or_y: str; whether you are animating horizontally/vertically
+        hint: float; the size_hint_x/y to animate to
+        transition; one of the properties of AnimationTransition from the 
+            kivy.animation module, or a string.
+        duration: float; the duration of the animation.
+                
+    You can perform any behavior that you wish in this method. But we HIGHLY 
+    recommend that you use this widget's start_resize_animation method when 
+    performing any animation, as the widget's properties (i.e., expanded, 
+    expand_state, expanding, resizing, etc) will be updated appropriately if you 
+    use that method."""
 
     def __init__(self, **kwargs):
         attributes = [
@@ -292,30 +589,38 @@ class ExpandableMixin(Widget):
             "duration_resize_y",
             "duration_retract_x",
             "duration_retract_y",
+            "expand_state_x",
+            "expand_state_y",
+            "expanded_x",
+            "expanded_y",
             "expanding_x",
             "expanding_y",
             "fixed_duration_x",
             "fixed_duration_y",
-            "max_y",
-            "max_y_hint",
             "max_x",
             "max_x_hint",
-            "expanded_x",
-            "expanded_y",
-            "retracted_x",
-            "retracted_y",
-            "expand_state_x",
-            "expand_state_y",
-            "retract_state_x",
-            "retract_state_y",
-            "min_y",
-            "min_y_hint",
+            "max_y",
+            "max_y_hint",
             "min_x",
             "min_x_hint",
+            "min_y",
+            "min_y_hint",
             "resizing",
+            "retract_state_x",
+            "retract_state_y",
+            "retracted_x",
+            "retracted_y",
+            "retracting_x",
             "retracting_y",
             "start_expanded_x",
-            "start_expanded_y"
+            "start_expanded_y",
+            "transition_expand_x",
+            "transition_expand_y",
+            "transition_resize",
+            "transition_resize_x",
+            "transition_resize_y",
+            "transition_retract_x",
+            "transition_retract_y"
         ]
         for attr in attributes:
             value = kwargs.pop(attr, None)
