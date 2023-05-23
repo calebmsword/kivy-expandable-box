@@ -6,8 +6,8 @@ In Python:
 s1 = "Expand me!"
 s2 = "Retract me!"
 class ExpandableButton(Button, ExpandableMixin):
-    def on_expand_state_x(self, instance, in_expand_state_x):
-        self.text = s2 if self.expand_state_x else s1
+    def on_expand_state_x(self, instance, expand_state_x):
+        self.text = s2 if expand_state_x else s1
     
     def on_release(self, *_args):
         self.toggle_x()
@@ -15,8 +15,7 @@ class ExpandableButton(Button, ExpandableMixin):
  
  expandable_button = ExpandableButton(
      min_x=100,
-     max_x=500,
-     allow_resize_x=True
+     max_x=500
  )
 ```
 
@@ -31,14 +30,83 @@ In kvlang:
 ExpandableButton:
     min_x: 100
     max_x: 500
-    allow_resize_x: True
 ```
+
+The ExpandableMixin gives any widget the ability to expand or retract vertically or horizontally.
+
+<details>
+    
+<summary>Example</summary>
+
+```kvlang
+#: set BLUE  0, 0, 1, 1
+#: set WHITE 1, 1, 1, 1
+<ExpandableLabel@Label+ExpandableMixin>:
+    bg_color: TRANSPARENT
+    canvas.before:
+        Color:
+            rgba: TRANSPARENT if self.bg_color is None else self.bg_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+BoxLayout:
+    ExpandableLabel:
+        id: label
+        min_x: 100
+        max_x: 300
+        min_y: 100
+        max_y: 300
+        bg_color: BLUE
+        color: WHITE
+        text: "Resizable"
+    BoxLayout:
+        orientation: "vertical"
+        Button:
+            text: "toggle_x()"
+            on_release: label.toggle_x()
+        Button:
+            text: "toggle_y()"
+            on_release: label.toggle_y()
+```
+
+</details>
+
+The user can use size hints to set the min width/height and max width/height.
+
+<details>
+
+<summary> Example </summary>
+
+```kvlang
+BoxLayout:
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            ExpandableButton:
+                text: "size hints for min and max"
+                min_x_hint: 0.5
+                max_x_hint: 1.0
+        BoxLayout:
+            ExpandableButton:
+                text: "min is width but max is size hint"
+                min_x: 200
+                max_x_hint: 1
+        BoxLayout:
+            ExpandableButton:
+                text: "min is size hint but max is width"
+                min_x_hint: 0.3
+                max_x: 400
+        
+```
+
+</details>
 
 Widgets which inherit the ExpandableMixin receive a rich API for accessing and manipulating the state of the widget.
 
 <details>
  
-<summary>The following in kvlang</summary>
+<summary>Example</summary>
 
 ```kvlang
 #: set WHITE 1, 1, 1, 1
@@ -78,27 +146,27 @@ BoxLayout:
             ColoredLabel:
                 bg_color: GREY
                 color: BLACK
-                text: "expand_state_x: {{0}}".format(expandable.expand_state_x)
+                text: "expand_state_x: {0}".format(expandable.expand_state_x)
             ColoredLabel:
                 bg_color: LIGHT_GREY
                 color: BLACK
-                text: "expanding_x: {{0}}".format(expandable.expanding_x)
+                text: "expanding_x: {0}".format(expandable.expanding_x)
             ColoredLabel:
                 bg_color: GREY
                 color: BLACK
-                text: "expanded_x: {{0}}".format(expandable.expanded_x)
+                text: "expanded_x: {0}".format(expandable.expanded_x)
             ColoredLabel:
                 bg_color: LIGHT_GREY
                 color: BLACK
-                text: "retract_state_x: {{0}}".format(expandable.retract_state_x)
+                text: "retract_state_x: {0}".format(expandable.retract_state_x)
             ColoredLabel:
                 bg_color: GREY
                 color: BLACK
-                text: "retracting_x: {{0}}".format(expandable.retracting_x)
+                text: "retracting_x: {0}".format(expandable.retracting_x)
             ColoredLabel:
                 bg_color: LIGHT_GREY
                 color: BLACK
-                text: "retracted_x: {{0}}".format(expandable.retracted_x)
+                text: "retracted_x: {0}".format(expandable.retracted_x)
         BoxLayout:
             Button:
                 text: "toggle_x()"
@@ -121,38 +189,45 @@ BoxLayout:
 ```
 </details>
 
-Widgets can be expanded horizontally or vertically.
+The user has many options for configuring properties of the animation which represents a transition from expanded to retracted or vice versa.
+
+<details>
+
+<summary>Example</summary>
 
 ```kvlang
-
 <ExpandableButton@Button+ExpandableMixin>:
- 
- BoxLayout:
-     BoxLayout:
-         ExpandableButton:
-             text: "Expandable"
-             min_x: 100
-             max_x: 300
-             on_release: self.toggle_x()
-     BoxLayout:
-          ExpandableButton:
-             text: "Expandable"
-             min_y_hint: 0.5
-             max_y_hint: 1.0
-             on_release: self.toggle_y()
-     BoxLayout:
-          ExpandableButton:
-             text: "Expandable"
-             min_x: 100
-             max_x_hint: 1
-             min_y_hint: 0.1
-             max_y: 300
-             on_release:
-                 self.toggle_x()
-                 self.toggle_y()
- 
+    
+
+BoxLayout:
+    orientation: "vertical"
+    ExpandableButton:
+        min_x_hint: 0.5
+        max_x_hint: 1.0
+        on_release: self.toggle_x()
+        duration_expand_x: 0.5
+        duration_retract_x: 0.1
+        transition_expand_x: "out_back"
+        transition_retract_x: "linear"
+    ExpandableButton:
+        min_x_hint: 0.5
+        max_x_hint: 1.0
+        min_y: 100
+        max_y: 200
+        on_release:
+            self.toggle_x()
+            self.toggle_y()
+        duration_resize: 1
+        duration_resize_x: 0.5  # takes priority over duration_resize for horizontal animation
+        duration_expand_y: 0.1  # takes priority over duration_resize for vertical expansion
+        transition_resize: "linear"
+        transition_resize_x: "out_bounce"  # takes priority over transition_resize for horizontal animation
+        transition_retract_y: "linear"  # takes priority over transition resize for vertical retraction
 ```
- 
+
+</details>
+
+
 When we say that this Widget is a mixin, we mean that it is not meant to be instantiated directly (although it can be) and instead is meant to be inherited by other Widgets.
 
 TO-DO:
@@ -166,7 +241,7 @@ TO-DO:
      - [x] BoxLayout
      - [x] GridLayout (COMPLICATED!)
      - [x] Take special notes on `GridLayout` because it is particularly complex.
-   - [ ] For `_resolve_size_hint_x` and `_resolve_size_hint_y`, check the instance of the containing Widget and perform the appropriate logic to resolve `size_hint_x` or `size_hint_y`.
+   - [x] For `_resolve_size_hint_x` and `_resolve_size_hint_y`, check the instance of the containing Widget and perform the appropriate logic to resolve `size_hint_x` or `size_hint_y`.
    - [ ] Perform extensive manual tests to ensure that you've implemented the size_hint resolvers propertly.
       - [ ] Window
       - [ ] FloatLayout
@@ -175,7 +250,7 @@ TO-DO:
       - [ ] StackLayout
       - [ ] BoxLayout
       - [ ] GridLayout (COMPLICATED!)
-    - [ ] Refactor resolver to handle size_hint_max_x and size_hint_max_y
+    - [ ] Refactor resolvers to handle size_hint_max_x and size_hint_max_y
       - [ ] Investigate how size_hint_max_x and size_hint_max_y affect every hint listener
         - [ ] Window
         - [ ] FloatLayout
