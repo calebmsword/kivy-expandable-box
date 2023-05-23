@@ -1,5 +1,5 @@
 # kivy-expandable-box
-A robust for creating expandable widgets in Kivy.
+A robust mixin for creating expandable widgets in Kivy.
 
 In Python:
 ```python
