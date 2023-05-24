@@ -194,6 +194,8 @@ The user has many options for configuring properties of the animation which repr
 <summary>Example</summary>
 
 ```kvlang
+#: import t kivy.animation.AnimationTransition
+
 <ExpandableButton@Button+ExpandableMixin>:
     
 
@@ -205,8 +207,8 @@ BoxLayout:
         on_release: self.toggle_x()
         duration_expand_x: 0.5
         duration_retract_x: 0.1
-        transition_expand_x: "out_back"
-        transition_retract_x: "linear"
+        transition_expand_x: t.out_back  # must be one of the attributes of AnimationTransition static class from kivy.animation module
+        transition_retract_x: "linear"  # but you can also use a string instead of kivy.animation.AnimationTransition.linear
     ExpandableButton:
         min_x_hint: 0.5
         max_x_hint: 1.0
